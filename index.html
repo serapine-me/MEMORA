@@ -308,7 +308,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);ove
 <div class="cfl" id="cfl">📋 Disalin!</div>
 
 <div id="welcome">
-  <p class="w-tag">Creator Specialist OS · v4.1</p>
+  <p class="w-tag">Creator Specialist OS · v4.2</p>
   <h1 class="w-title">Posting Dulu, <span>DNA Menyusul</span></h1>
   <p class="w-sub">Brand DNA terbaik lahir dari data nyata — bukan form. Setup dalam 2 menit, langsung buat konten pertama, sistem belajar dari hasilnya.</p>
   <div class="w-btns">
@@ -699,7 +699,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);ove
         </div>
       </div>
       <div class="card" style="text-align:center;padding:14px;">
-        <p class="fs11 fmuted">Creator Specialist OS · v4.1 · Data-First DNA System</p>
+        <p class="fs11 fmuted">Creator Specialist OS · v4.2 · Data-First DNA System</p>
       </div>
     </div>
 
@@ -925,6 +925,7 @@ supabase.auth.onAuthStateChange(function(event, session) {
 // ════════════════════════════════════════════════════════
 
 const SK = 'cOS_v4';
+const APP_VERSION = '4.2.0';
 
 function defaultState() {
   return {
@@ -2552,7 +2553,19 @@ function _bindAuthButtons() {
 window.addEventListener('error', function(e){ console.error('[GlobalError]', e.message, e.filename, e.lineno); });
 window.addEventListener('unhandledrejection', function(e){ console.error('[UnhandledRejection]', e.reason); });
 
+function ensureAppVersion() {
+  var vk = 'cOS_app_version';
+  var prev = localStorage.getItem(vk);
+  if (prev !== APP_VERSION) {
+    localStorage.setItem(vk, APP_VERSION);
+    // Hindari state UI lama nyangkut di cache browser.
+    sessionStorage.removeItem('auth_overlay_open');
+    console.log('[AppVersion] upgraded to', APP_VERSION, 'from', prev || 'none');
+  }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
+  ensureAppVersion();
   _bindAuthButtons();
   checkUser();
 });
