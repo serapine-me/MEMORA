@@ -2581,8 +2581,47 @@ function ensureAppVersion() {
   }
 }
 
+function bindOnclickFallbackIfNeeded() {
+  var inlineWorks = false;
+  try {
+    window.__inlineProbe = false;
+    var probe = document.createElement('button');
+    probe.setAttribute('onclick', 'window.__inlineProbe=true');
+    probe.click();
+    inlineWorks = window.__inlineProbe === true;
+    delete window.__inlineProbe;
+  } catch (e) { inlineWorks = false; }
+
+  if (inlineWorks) return;
+
+  document.querySelectorAll('[onclick]').forEach(function(el) {
+    if (el._fallbackBound) return;
+    var raw = (el.getAttribute('onclick') || '').trim();
+    var m = raw.match(/^([A-Za-z_$][\w$]*)\((.*)\)\s*;?$/);
+    if (!m) return;
+    var fn = m[1];
+    var argSrc = (m[2] || '').trim();
+
+    el.addEventListener('click', function(ev) {
+      ev.preventDefault();
+      var f = window[fn];
+      if (typeof f !== 'function') return;
+      var args = [];
+      if (argSrc) {
+        try { args = (new Function('return [' + argSrc + ']'))(); }
+        catch (e) { console.warn('fallback arg parse fail', raw, e); }
+      }
+      f.apply(window, args);
+    });
+    el._fallbackBound = true;
+  });
+
+  toast('Mode kompatibilitas tombol aktif ✅', 'inf', 2800);
+}
+
 document.addEventListener('DOMContentLoaded', function() {
   ensureAppVersion();
+  bindOnclickFallbackIfNeeded();
   _bindAuthButtons();
   checkUser();
 });
