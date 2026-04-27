@@ -730,21 +730,31 @@ const EDGE_FN_URL = supaUrl + '/functions/v1/smart-function';
 
 async function aiCall(prompt, sys) {
   const { data: { session } } = await supabase.auth.getSession();
-  if (!session) throw new Error('Not authenticated');
+
+  var headers = {
+    'Content-Type': 'application/json',
+    // apikey membantu call dari client walau belum ada session login
+    'apikey': supaKey,
+  };
+  if (session && session.access_token) {
+    headers['Authorization'] = 'Bearer ' + session.access_token;
+  }
 
   const res = await fetch(EDGE_FN_URL, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer ' + session.access_token,
-    },
+    headers: headers,
     body: JSON.stringify({
       prompt: prompt,
       systemPrompt: sys || buildSysPrompt(),
     }),
   });
 
-  if (!res.ok) throw new Error('Edge Function error ' + res.status);
+  if (!res.ok) {
+    if (res.status === 401 || res.status === 403) {
+      throw new Error('Akses AI ditolak. Login dulu lalu coba lagi.');
+    }
+    throw new Error('Edge Function error ' + res.status);
+  }
   const d = await res.json();
   if (d.error) throw new Error(d.error);
   return d.text || '';
@@ -759,69 +769,128 @@ function hideAuth() {
   var ov = document.getElementById('authOverlay'); if (ov) ov.style.display = 'none';
 }
 
+function getAuthButtons() {
+  var ov = document.getElementById('authOverlay');
+  if (!ov) return { loginBtn:null, registerBtn:null };
+  var btns = ov.querySelectorAll('button');
+  return { loginBtn: btns[0] || null, registerBtn: btns[1] || null };
+}
+
+function getSafeRedirectUrl() {
+  var isHttp = /^https?:/i.test(window.location.protocol || '');
+  if (!isHttp) return null;
+  return window.location.origin + window.location.pathname;
+}
+
+function authErrMsg(err) {
+  var msg = ((err && err.message) || '').trim();
+  if (!msg) return 'Proses autentikasi gagal. Coba lagi.';
+  if (/invalid login credentials/i.test(msg)) return 'Email atau password salah.';
+  if (/email not confirmed/i.test(msg)) return 'Email belum dikonfirmasi. Cek inbox/spam lalu login lagi.';
+  if (/user already registered/i.test(msg)) return 'Email sudah terdaftar. Silakan login.';
+  if (/password should be at least/i.test(msg)) return 'Password terlalu pendek (minimal 6 karakter).';
+  if (/fetch failed|networkerror|failed to fetch/i.test(msg)) return 'Koneksi internet bermasalah. Coba ganti jaringan lalu ulangi.';
+  if (/rate limit|too many requests/i.test(msg)) return 'Terlalu banyak percobaan. Tunggu sebentar lalu coba lagi.';
+  return msg;
+}
+
 async function handleRegister() {
+  var authBtns = getAuthButtons();
+  if (authBtns.registerBtn) authBtns.registerBtn.disabled = true;
   try {
     var email = (document.getElementById('authEmail')||{}).value;
     var password = (document.getElementById('authPassword')||{}).value;
     if (!email || !password) { toast('Email dan password wajib diisi!', 'err'); return; }
     if (password.length < 6) { toast('Password minimal 6 karakter', 'err'); return; }
-    var redirectUrl = window.location.origin + window.location.pathname;
-    var resp = await supabase.auth.signUp({ email: email, password: password, options: { emailRedirectTo: redirectUrl } });
-    if (resp.error) { toast('Gagal daftar: ' + resp.error.message, 'err'); return; }
+
+    var redirectUrl = getSafeRedirectUrl();
+    var options = redirectUrl ? { emailRedirectTo: redirectUrl } : undefined;
+    var resp = await supabase.auth.signUp({ email: email, password: password, options: options });
+
+    if (resp.error) {
+      toast(authErrMsg(resp.error), /registered/i.test((resp.error.message||'')) ? 'inf' : 'err');
+      return;
+    }
     if (resp.data && resp.data.session) {
-      // langsung login (email confirmation OFF di Supabase)
       hideAuth();
       await initAfterLogin(resp.data.user);
       toast('Akun dibuat! 🎉', 'ok');
     } else {
-      toast('Cek email kamu untuk konfirmasi, lalu login.', 'ok');
+      // Jika email confirmation OFF tapi session belum balik, coba login otomatis sekali.
+      var autoLogin = await supabase.auth.signInWithPassword({ email: email, password: password });
+      if (!autoLogin.error && autoLogin.data && autoLogin.data.user) {
+        hideAuth();
+        await initAfterLogin(autoLogin.data.user);
+        toast('Akun dibuat & langsung login ✅', 'ok');
+      } else {
+        toast('Akun dibuat. Cek email konfirmasi lalu login.', 'ok', 5000);
+      }
     }
-  } catch(e) { console.error('register error', e); toast('Error: ' + e.message, 'err'); }
+  } catch(e) {
+    console.error('register error', e);
+    toast(authErrMsg(e), 'err');
+  } finally {
+    if (authBtns.registerBtn) authBtns.registerBtn.disabled = false;
+  }
 }
 
+
 async function handleLogin() {
+  var authBtns = getAuthButtons();
+  if (authBtns.loginBtn) authBtns.loginBtn.disabled = true;
   try {
     var email = (document.getElementById('authEmail')||{}).value;
     var password = (document.getElementById('authPassword')||{}).value;
     if (!email || !password) { toast('Email dan password wajib diisi!', 'err'); return; }
     var resp = await supabase.auth.signInWithPassword({ email: email, password: password });
     if (resp.error) {
-      var msg = resp.error.message || '';
-      if (/email not confirmed/i.test(msg)) {
-        toast('Email belum dikonfirmasi. Cek inbox kamu.', 'err');
-      } else if (/invalid login/i.test(msg)) {
-        toast('Email atau password salah', 'err');
-      } else {
-        toast('Gagal masuk: ' + msg, 'err');
-      }
+      toast(authErrMsg(resp.error), 'err');
       return;
     }
     hideAuth();
     await initAfterLogin(resp.data.user);
     toast('Selamat datang! 👋', 'ok');
-  } catch(e) { console.error('login error', e); toast('Error: ' + e.message, 'err'); }
+  } catch(e) {
+    console.error('login error', e);
+    toast(authErrMsg(e), 'err');
+  } finally {
+    if (authBtns.loginBtn) authBtns.loginBtn.disabled = false;
+  }
 }
+
 
 async function checkUser() {
   try {
     var resp = await supabase.auth.getSession();
     var session = resp && resp.data ? resp.data.session : null;
+    var w = document.getElementById('welcome');
+    var app = document.getElementById('app');
+
     if (session) {
       hideAuth();
-      var w = document.getElementById('welcome'); if (w) w.style.display = 'none';
+      if (w) w.style.display = 'none';
       await initAfterLogin(session.user);
-    } else {
-      showAuth();
+      return;
     }
+
+    // FLOW BARU: user boleh isi DNA dulu tanpa login.
+    // Login diminta setelah onboarding selesai atau saat user klik tombol auth.
+    hideAuth();
+    if (app) app.style.display = 'none';
+    if (w) w.style.display = 'flex';
   } catch(e) {
     console.error('checkUser error', e);
-    showAuth();
+    hideAuth();
   }
 }
 
 // auto-update saat session berubah (login/logout di tab lain, refresh token, dll)
 supabase.auth.onAuthStateChange(function(event, session) {
-  if (event === 'SIGNED_OUT') { showAuth(); }
+  if (event === 'SIGNED_OUT') {
+    hideAuth();
+    var app = document.getElementById('app'); if (app) app.style.display = 'none';
+    var welcome = document.getElementById('welcome'); if (welcome) welcome.style.display = 'flex';
+  }
 });
 // checkUser() dipanggil di DOMContentLoaded (lihat bawah)
 
@@ -904,6 +973,9 @@ async function initAfterLogin(user) {
   } else {
     S = loadS();
   }
+  // Pastikan akun baru langsung punya row user_data di Supabase.
+  syncToSupabase();
+
   if (S.onboarded) {
     document.getElementById('welcome').style.display = 'none';
     document.getElementById('app').style.display = 'flex';
@@ -1017,7 +1089,11 @@ function findC(id) {
 }
 
 // ─── WELCOME ─────────────────────────────────────────────
-function startOb() { openOv('obOv'); renderObDots(); }
+function startOb() {
+  // onboarding tetap bisa dibuka, tapi kalau AI butuh auth user akan diarahkan login dengan jelas
+  openOv('obOv');
+  renderObDots();
+}
 
 // ─── ONBOARDING ──────────────────────────────────────────
 var obStep = 1;
@@ -1179,10 +1255,31 @@ function renderObStep5() {
   }
 }
 
-function finishOb() {
+async function finishOb() {
   closeOv('obOv');
-  document.getElementById('welcome').style.display = 'none';
-  document.getElementById('app').style.display = 'flex';
+  var welcome = document.getElementById('welcome');
+  var app = document.getElementById('app');
+  if (welcome) welcome.style.display = 'none';
+
+  try {
+    var resp = await supabase.auth.getSession();
+    var session = resp && resp.data ? resp.data.session : null;
+
+    if (!session) {
+      if (app) app.style.display = 'none';
+      showAuth();
+      toast('DNA sudah dibuat ✅ Sekarang login/daftar untuk masuk ke dashboard.', 'inf', 4500);
+      return;
+    }
+  } catch (e) {
+    console.error('finishOb session check failed', e);
+    if (app) app.style.display = 'none';
+    showAuth();
+    toast('DNA sudah dibuat ✅ Login dulu untuk lanjut.', 'inf', 4500);
+    return;
+  }
+
+  if (app) app.style.display = 'flex';
   refreshApp();
   toast('Brand DNA berhasil dibangun! 🧬', 'ok', 4000);
 }
@@ -1437,7 +1534,7 @@ function loadRec() {
     var el = document.getElementById('h_rec');
     if(el) el.innerHTML = '<p class="ait">'+esc(res)+'</p>';
     toast('Insight terbaru dimuat ✦', 'ok');
-  }).catch(function() { toast('Gagal. Cek koneksi.', 'err'); })
+  }).catch(function(e) { toast(e && e.message ? e.message : 'Gagal. Cek koneksi.', 'err'); })
   .finally(function() { setLd('recBtn', false); });
 }
 
@@ -2414,22 +2511,8 @@ async function resetApp() {
 // ─── INIT ────────────────────────────────────────────────
 // Semua fungsi sudah terdefinisi, baru panggil checkUser
 function _bindAuthButtons() {
-  // Cadangan: pasang listener ke tombol login/daftar agar pasti merespon
-  // (kalau onclick inline tidak jalan karena alasan apapun)
-  var ov = document.getElementById('authOverlay');
-  if (!ov) return;
-  var btns = ov.querySelectorAll('button');
-  btns.forEach(function(b) {
-    var t = (b.textContent || '').toLowerCase();
-    if (t.indexOf('login') >= 0 && !b._bound) {
-      b._bound = true;
-      b.addEventListener('click', function(ev){ ev.preventDefault(); handleLogin(); });
-    } else if (t.indexOf('daftar') >= 0 && !b._bound) {
-      b._bound = true;
-      b.addEventListener('click', function(ev){ ev.preventDefault(); handleRegister(); });
-    }
-  });
-  // Enter di password = login
+  // Hindari double submit: tombol sudah pakai inline onclick.
+  // Di sini hanya pasang shortcut Enter pada input password.
   var pw = document.getElementById('authPassword');
   if (pw && !pw._bound) {
     pw._bound = true;
