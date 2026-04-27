@@ -301,6 +301,7 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);ove
     <button class="btn btn-g btn-full" onclick="handleRegister()" style="font-size: 14px; padding: 12px;">Daftar Akun Baru</button>
     <button class="btn btn-pu btn-full btn-sm" id="authDiagBtn" onclick="testAuthConnection()" style="margin-top:10px;">Tes Koneksi Auth</button>
     <p style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.45;">Kalau login/daftar gagal, klik <strong>Tes Koneksi Auth</strong> dulu. Ini cek apakah server Supabase bisa diakses dari jaringan kamu.</p>
+    <button class="btn btn-g btn-full btn-sm" onclick="continueWithoutLogin()" style="margin-top:10px;">Lanjut tanpa Login (Mode Lokal)</button>
   </div>
 </div>
 
@@ -820,6 +821,22 @@ async function testAuthConnection() {
   }
 }
 
+function continueWithoutLogin() {
+  hideAuth();
+  var welcome = document.getElementById('welcome');
+  var app = document.getElementById('app');
+  if (S && S.onboarded) {
+    if (welcome) welcome.style.display = 'none';
+    if (app) app.style.display = 'flex';
+    refreshApp();
+    toast('Mode lokal aktif. Data disimpan di perangkat ini.', 'inf', 4500);
+    return;
+  }
+  if (app) app.style.display = 'none';
+  if (welcome) welcome.style.display = 'flex';
+  toast('Silakan isi DNA Brand dulu, lalu kamu bisa lanjut mode lokal.', 'inf', 4500);
+}
+
 async function handleRegister() {
   var authBtns = getAuthButtons();
   if (authBtns.registerBtn) authBtns.registerBtn.disabled = true;
@@ -1295,7 +1312,7 @@ async function finishOb() {
     if (!session) {
       if (app) app.style.display = 'none';
       showAuth();
-      toast('DNA sudah dibuat ✅ Sekarang login/daftar untuk masuk ke dashboard.', 'inf', 4500);
+      toast('DNA sudah dibuat ✅ Login/daftar, atau pilih mode lokal di bawah.', 'inf', 5000);
       return;
     }
   } catch (e) {
