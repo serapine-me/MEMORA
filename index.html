@@ -299,6 +299,8 @@ body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);ove
     
     <button class="btn btn-p btn-full" onclick="handleLogin()" style="margin-bottom: 12px; font-size: 15px; padding: 12px;">Login ke Sistem</button>
     <button class="btn btn-g btn-full" onclick="handleRegister()" style="font-size: 14px; padding: 12px;">Daftar Akun Baru</button>
+    <button class="btn btn-pu btn-full btn-sm" id="authDiagBtn" onclick="testAuthConnection()" style="margin-top:10px;">Tes Koneksi Auth</button>
+    <p style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.45;">Kalau login/daftar gagal, klik <strong>Tes Koneksi Auth</strong> dulu. Ini cek apakah server Supabase bisa diakses dari jaringan kamu.</p>
   </div>
 </div>
 
@@ -784,14 +786,38 @@ function getSafeRedirectUrl() {
 
 function authErrMsg(err) {
   var msg = ((err && err.message) || '').trim();
-  if (!msg) return 'Proses autentikasi gagal. Coba lagi.';
+  var code = (err && (err.code || err.status || err.name)) || '';
+  if (!msg) return code ? ('Proses autentikasi gagal (' + code + ').') : 'Proses autentikasi gagal. Coba lagi.';
   if (/invalid login credentials/i.test(msg)) return 'Email atau password salah.';
   if (/email not confirmed/i.test(msg)) return 'Email belum dikonfirmasi. Cek inbox/spam lalu login lagi.';
   if (/user already registered/i.test(msg)) return 'Email sudah terdaftar. Silakan login.';
   if (/password should be at least/i.test(msg)) return 'Password terlalu pendek (minimal 6 karakter).';
-  if (/fetch failed|networkerror|failed to fetch/i.test(msg)) return 'Koneksi internet bermasalah. Coba ganti jaringan lalu ulangi.';
+  if (/fetch failed|networkerror|failed to fetch|network request failed/i.test(msg)) return 'Koneksi internet bermasalah / domain Supabase tidak terjangkau dari jaringan kamu.';
   if (/rate limit|too many requests/i.test(msg)) return 'Terlalu banyak percobaan. Tunggu sebentar lalu coba lagi.';
-  return msg;
+  return code ? (msg + ' (' + code + ')') : msg;
+}
+
+async function testAuthConnection() {
+  setLd('authDiagBtn', true);
+  try {
+    // Cek reachability endpoint Auth lewat percobaan login dummy.
+    var probe = await supabase.auth.signInWithPassword({ email: 'diag@invalid.local', password: 'invalid_password_123' });
+    if (probe && probe.error) {
+      var m = (probe.error.message || '').toLowerCase();
+      if (m.indexOf('invalid login credentials') >= 0 || m.indexOf('email not confirmed') >= 0) {
+        toast('Server auth terhubung ✅ Berarti masalah ada di akun/password/konfirmasi email.', 'ok', 4500);
+      } else {
+        toast('Auth reachable, tapi ada kendala config: ' + authErrMsg(probe.error), 'inf', 5500);
+      }
+    } else {
+      toast('Koneksi auth OK ✅', 'ok');
+    }
+  } catch (e) {
+    console.error('auth diagnostic failed', e);
+    toast('Auth tidak bisa diakses: ' + authErrMsg(e), 'err', 5500);
+  } finally {
+    setLd('authDiagBtn', false);
+  }
 }
 
 async function handleRegister() {
