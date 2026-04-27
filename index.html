@@ -730,21 +730,31 @@ const EDGE_FN_URL = supaUrl + '/functions/v1/smart-function';
 
 async function aiCall(prompt, sys) {
   const { data: { session } } = await supabase.auth.getSession();
-  if (!session) throw new Error('Not authenticated');
+
+  var headers = {
+    'Content-Type': 'application/json',
+    // apikey membantu call dari client walau belum ada session login
+    'apikey': supaKey,
+  };
+  if (session && session.access_token) {
+    headers['Authorization'] = 'Bearer ' + session.access_token;
+  }
 
   const res = await fetch(EDGE_FN_URL, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': 'Bearer ' + session.access_token,
-    },
+    headers: headers,
     body: JSON.stringify({
       prompt: prompt,
       systemPrompt: sys || buildSysPrompt(),
     }),
   });
 
-  if (!res.ok) throw new Error('Edge Function error ' + res.status);
+  if (!res.ok) {
+    if (res.status === 401 || res.status === 403) {
+      throw new Error('Akses AI ditolak. Login dulu lalu coba lagi.');
+    }
+    throw new Error('Edge Function error ' + res.status);
+  }
   const d = await res.json();
   if (d.error) throw new Error(d.error);
   return d.text || '';
@@ -1017,7 +1027,11 @@ function findC(id) {
 }
 
 // ─── WELCOME ─────────────────────────────────────────────
-function startOb() { openOv('obOv'); renderObDots(); }
+function startOb() {
+  // onboarding tetap bisa dibuka, tapi kalau AI butuh auth user akan diarahkan login dengan jelas
+  openOv('obOv');
+  renderObDots();
+}
 
 // ─── ONBOARDING ──────────────────────────────────────────
 var obStep = 1;
@@ -1437,7 +1451,7 @@ function loadRec() {
     var el = document.getElementById('h_rec');
     if(el) el.innerHTML = '<p class="ait">'+esc(res)+'</p>';
     toast('Insight terbaru dimuat ✦', 'ok');
-  }).catch(function() { toast('Gagal. Cek koneksi.', 'err'); })
+  }).catch(function(e) { toast(e && e.message ? e.message : 'Gagal. Cek koneksi.', 'err'); })
   .finally(function() { setLd('recBtn', false); });
 }
 
