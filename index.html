@@ -330,19 +330,29 @@ async function loadFromSupabase(userId) {
       .select('state')
       .eq('user_id', userId)
       .maybeSingle();
-    if (error) { console.warn('loadFromSupabase:', error.message); return null; }
-    if (!data) return null;
-    return data.state;
-  } catch(e) { console.warn('loadFromSupabase exception', e); return null; }
+    if (error) {
+      console.warn('loadFromSupabase:', error.message);
+      return { state: null, readFailed: true };
+    }
+    if (!data) return { state: null, readFailed: false };
+    return { state: data.state, readFailed: false };
+  } catch(e) {
+    console.warn('loadFromSupabase exception', e);
+    return { state: null, readFailed: true };
+  }
 }
 
 async function initAfterLogin(user) {
-  const remote = await loadFromSupabase(user.id);
-  if (remote) {
-    S = mergeState(defaultState(), remote);
+  const remoteResult = await loadFromSupabase(user.id);
+  if (remoteResult.state) {
+    S = mergeState(defaultState(), remoteResult.state);
     localStorage.setItem(SK, JSON.stringify(S));
   } else {
     S = loadS();
+  }
+  // Hanya sync fallback local state jika remote read berhasil.
+  if (!remoteResult.readFailed) {
+    await syncToSupabase();
   }
   if (S.onboarded) {
     document.getElementById('welcome').style.display = 'none';
