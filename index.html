@@ -1,714 +1,105 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Creator Specialist OS</title>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-<style>
-:root{
-  --bg:#07070d;--s1:#0f0f1a;--s2:#161624;--s3:#1e1e2e;--s4:#252538;
-  --border:rgba(255,255,255,0.06);--b2:rgba(255,255,255,0.11);
-  --accent:#c9ff3e;--a2:#7c62ff;--a3:#ff6b6b;--a4:#f5c842;--a5:#4ade80;
-  --text:#eeeef8;--t2:#b8b8d0;--muted:#5a5a7a;
-  --nav-h:64px;--r:14px;
-}
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
-html,body{height:100%;-webkit-tap-highlight-color:transparent;}
-body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;}
-::-webkit-scrollbar{width:3px;}::-webkit-scrollbar-thumb{background:var(--a2);border-radius:2px;}
-
-#app{display:flex;flex-direction:column;min-height:100svh;max-width:480px;margin:0 auto;}
-.ca{flex:1;overflow-y:auto;overflow-x:hidden;padding-bottom:calc(var(--nav-h)+12px);}
-.ca::-webkit-scrollbar{display:none;}
-
-/* HEADER */
-.hdr{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;background:rgba(7,7,13,.95);backdrop-filter:blur(14px);position:sticky;top:0;z-index:50;border-bottom:1px solid var(--border);}
-.hdr-brand{font-family:'Syne',sans-serif;font-size:14px;font-weight:700;letter-spacing:-.01em;}
-.hdr-brand span{color:var(--accent);}
-.hdr-r{display:flex;align-items:center;gap:9px;}
-.streak-chip{display:flex;align-items:center;gap:4px;background:rgba(201,255,62,.08);border:1px solid rgba(201,255,62,.2);border-radius:20px;padding:3px 10px;font-size:11.5px;font-weight:600;color:var(--accent);}
-.av{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--a2),var(--accent));display:flex;align-items:center;justify-content:center;font-family:'Syne',sans-serif;font-size:11px;font-weight:800;color:#000;cursor:pointer;flex-shrink:0;}
-
-/* BOTTOM NAV */
-.bnav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;height:var(--nav-h);background:rgba(9,9,17,.97);backdrop-filter:blur(18px);border-top:1px solid var(--border);display:flex;align-items:center;justify-content:space-around;z-index:100;padding:0 4px;padding-bottom:env(safe-area-inset-bottom);}
-.nt{display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 12px;border-radius:10px;cursor:pointer;transition:all .18s;min-width:48px;}
-.nt .ni{font-size:20px;transition:transform .18s;}
-.nt .nl{font-size:9px;font-weight:600;color:var(--muted);letter-spacing:.03em;}
-.nt.active .ni{transform:scale(1.1);}
-.nt.active .nl{color:var(--accent);}
-.nt.active{background:rgba(201,255,62,.07);}
-.ncb{background:var(--accent);width:50px;height:50px;border-radius:15px;display:flex;align-items:center;justify-content:center;font-size:22px;font-weight:800;cursor:pointer;box-shadow:0 4px 20px rgba(201,255,62,.3);transition:all .18s;flex-shrink:0;color:#000;}
-.ncb:active{transform:scale(.95);}
-.ncb.active{box-shadow:0 4px 28px rgba(201,255,62,.5);}
-
-/* PAGES */
-.page{display:none;padding:16px 16px 8px;animation:pIn .2s ease;}
-.page.active{display:block;}
-@keyframes pIn{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
-
-/* TYPE */
-.ph{font-family:'Syne',sans-serif;font-size:21px;font-weight:800;margin-bottom:4px;}
-.ps{font-size:12.5px;color:var(--muted);margin-bottom:16px;line-height:1.5;}
-.stl{font-family:'Syne',sans-serif;font-size:12.5px;font-weight:700;margin-bottom:9px;display:flex;align-items:center;gap:6px;}
-.stag{font-family:'DM Sans',sans-serif;font-size:10px;font-weight:600;color:var(--muted);background:var(--s3);padding:2px 8px;border-radius:20px;margin-left:auto;}
-
-/* CARDS */
-.card{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:12px;}
-.card-title{font-family:'Syne',sans-serif;font-size:13px;font-weight:700;margin-bottom:3px;}
-.card-sub{font-size:12px;color:var(--muted);margin-bottom:12px;line-height:1.5;}
-
-/* DNA CARD */
-.dna-card{background:linear-gradient(135deg,rgba(124,98,255,.12),rgba(201,255,62,.05));border:1px solid rgba(124,98,255,.25);border-radius:16px;padding:18px;margin-bottom:12px;position:relative;overflow:hidden;}
-.dna-card::after{content:'';position:absolute;top:-40px;right:-40px;width:120px;height:120px;background:radial-gradient(circle,rgba(201,255,62,.07),transparent);border-radius:50%;pointer-events:none;}
-.dna-pulse{display:flex;align-items:center;gap:8px;margin-bottom:10px;}
-.dna-dot{width:7px;height:7px;border-radius:50%;background:var(--accent);animation:glw 2s ease-in-out infinite;}
-@keyframes glw{0%,100%{box-shadow:0 0 6px rgba(201,255,62,.5)}50%{box-shadow:0 0 14px rgba(201,255,62,.9)}}
-.dna-lbl{font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.14em;}
-.dna-name{font-family:'Syne',sans-serif;font-size:22px;font-weight:800;margin-bottom:2px;}
-.dna-pos{font-size:12.5px;color:var(--t2);line-height:1.5;margin-bottom:14px;font-style:italic;}
-.dna-bar-row{display:flex;align-items:center;gap:10px;}
-.dna-bar-label{font-size:11px;color:var(--muted);}
-.dna-bar-track{flex:1;background:rgba(255,255,255,.06);border-radius:4px;height:6px;overflow:hidden;}
-.dna-bar-fill{height:100%;border-radius:4px;background:linear-gradient(90deg,var(--a2),var(--accent));transition:width .8s ease;}
-.dna-bar-pct{font-size:11px;font-weight:700;color:var(--accent);}
-
-/* LEVEL */
-.lv-card{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:16px;margin-bottom:12px;}
-.lv-badge{display:inline-flex;align-items:center;gap:5px;background:rgba(124,98,255,.14);border:1px solid rgba(124,98,255,.28);color:#a394ff;font-size:10px;font-weight:700;letter-spacing:.08em;padding:3px 10px;border-radius:20px;font-family:'Syne',sans-serif;margin-bottom:8px;}
-.lv-name{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;margin-bottom:10px;}
-.xp-track{background:rgba(255,255,255,.05);border-radius:5px;height:7px;overflow:hidden;margin-bottom:5px;}
-.xp-fill{height:100%;border-radius:5px;background:linear-gradient(90deg,var(--a2),var(--accent));transition:width .8s cubic-bezier(.4,0,.2,1);}
-.xp-lbl{display:flex;justify-content:space-between;font-size:10.5px;color:var(--muted);}
-
-/* STATS */
-.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px;}
-.stat-box{background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:12px 10px;text-align:center;}
-.sn{font-family:'Syne',sans-serif;font-size:21px;font-weight:800;line-height:1;margin-bottom:4px;}
-.sl{font-size:9.5px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.06em;}
-
-/* MISSIONS */
-.mission{display:flex;align-items:center;gap:11px;padding:11px 13px;background:var(--s2);border-radius:10px;margin-bottom:7px;border:1px solid var(--border);cursor:pointer;transition:all .15s;}
-.mission:hover{border-color:var(--b2);}
-.mission.done{opacity:.5;}
-.m-icon{font-size:18px;width:24px;text-align:center;flex-shrink:0;}
-.m-info{flex:1;min-width:0;}
-.m-title{font-size:13px;font-weight:500;margin-bottom:1px;}
-.m-title.struck{text-decoration:line-through;color:var(--muted);}
-.m-sub{font-size:11px;color:var(--muted);}
-.m-check{width:22px;height:22px;border-radius:6px;border:1.5px solid var(--b2);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;transition:all .2s;}
-.m-check.ok{background:var(--accent);border-color:var(--accent);color:#000;}
-
-/* BUTTONS */
-.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;padding:9px 16px;border-radius:9px;font-size:13px;font-weight:500;cursor:pointer;border:none;transition:all .15s;font-family:'DM Sans',sans-serif;white-space:nowrap;position:relative;}
-.btn:disabled{opacity:.4;cursor:not-allowed;}
-.btn-p{background:var(--accent);color:#000;font-weight:600;}
-.btn-p:hover:not(:disabled){background:#d6ff55;transform:translateY(-1px);}
-.btn-g{background:transparent;color:var(--muted);border:1px solid var(--border);}
-.btn-g:hover:not(:disabled){background:var(--s2);color:var(--text);}
-.btn-pu{background:rgba(124,98,255,.14);color:#a394ff;border:1px solid rgba(124,98,255,.25);}
-.btn-pu:hover:not(:disabled){background:rgba(124,98,255,.24);}
-.btn-gr{background:rgba(74,222,128,.12);color:var(--a5);border:1px solid rgba(74,222,128,.22);}
-.btn-gr:hover:not(:disabled){background:rgba(74,222,128,.2);}
-.btn-rd{background:rgba(255,107,107,.1);color:var(--a3);border:1px solid rgba(255,107,107,.2);}
-.btn-full{width:100%;justify-content:center;padding:12px;}
-.btn-sm{padding:6px 11px;font-size:12px;border-radius:7px;}
-.btn .sp{display:none;width:13px;height:13px;border:2px solid rgba(0,0,0,.2);border-top-color:#000;border-radius:50%;animation:spin .6s linear infinite;}
-.btn-g .sp,.btn-pu .sp,.btn-gr .sp{border-color:rgba(255,255,255,.15);border-top-color:var(--t2);}
-.btn.ld .sp{display:inline-block;}
-.btn.ld .bl{opacity:0;position:absolute;}
-@keyframes spin{to{transform:rotate(360deg)}}
-
-/* TAGS */
-.tag{display:inline-flex;align-items:center;padding:5px 11px;border-radius:7px;background:var(--s3);border:1px solid var(--border);font-size:12px;color:var(--muted);cursor:pointer;transition:all .15s;user-select:none;}
-.tag:hover,.tag.sel{background:rgba(201,255,62,.09);border-color:rgba(201,255,62,.35);color:var(--accent);}
-
-/* BADGES */
-.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:10.5px;font-weight:600;}
-.ba{background:rgba(201,255,62,.1);color:var(--accent);}
-.bp{background:rgba(124,98,255,.14);color:#a394ff;}
-.br{background:rgba(255,107,107,.1);color:var(--a3);}
-.bg2{background:rgba(74,222,128,.1);color:var(--a5);}
-.bo{background:rgba(245,200,66,.1);color:var(--a4);}
-
-/* INPUTS */
-.ig{margin-bottom:13px;}
-.il{font-size:10.5px;font-weight:700;color:var(--muted);margin-bottom:5px;display:block;text-transform:uppercase;letter-spacing:.07em;}
-.inp,.ta,.sel{width:100%;background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:10px 12px;color:var(--text);font-size:13.5px;font-family:'DM Sans',sans-serif;outline:none;transition:border-color .15s;}
-.inp:focus,.ta:focus,.sel:focus{border-color:var(--a2);}
-.inp.err{border-color:var(--a3);}
-.inp::placeholder,.ta::placeholder{color:var(--muted);}
-.ta{resize:vertical;min-height:70px;}
-.sel{cursor:pointer;}.sel option{background:var(--s1);}
-.ferr{font-size:11px;color:var(--a3);margin-top:3px;display:none;}.ferr.on{display:block;}
-.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
-
-/* DIVIDER */
-.div{height:1px;background:var(--border);margin:14px 0;}
-
-/* AI BLOCK */
-.aib{background:linear-gradient(135deg,rgba(124,98,255,.07),rgba(201,255,62,.03));border:1px solid rgba(124,98,255,.18);border-radius:12px;padding:14px;position:relative;margin-top:4px;}
-.aib::before{content:'✦ AI';position:absolute;top:-9px;left:12px;background:var(--a2);color:#fff;font-size:9px;font-weight:700;letter-spacing:.1em;padding:2px 7px;border-radius:20px;font-family:'Syne',sans-serif;}
-.ait{font-size:13px;line-height:1.72;color:var(--t2);white-space:pre-wrap;}
-.aic{display:none;width:2px;height:13px;background:var(--a2);margin-left:2px;animation:blink .8s step-end infinite;vertical-align:middle;}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
-
-/* CONTENT GEN CARD */
-.cgc{background:var(--s1);border:1px solid var(--border);border-radius:16px;margin-bottom:14px;overflow:hidden;}
-.cgc.posted{border-color:rgba(74,222,128,.3);}
-.cgc-hd{padding:13px 15px 10px;display:flex;align-items:flex-start;justify-content:space-between;gap:8px;}
-.cgc-meta{font-size:10px;color:var(--muted);margin-bottom:4px;}
-.cgc-sec{border-top:1px solid var(--border);padding:11px 15px;}
-.cgc-sl{font-size:9.5px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:7px;display:flex;align-items:center;justify-content:space-between;}
-.cgc-hook{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--accent);line-height:1.3;}
-.cgc-txt{font-size:13.5px;line-height:1.65;color:var(--text);white-space:pre-wrap;}
-.cgc-script{font-size:13px;line-height:1.65;color:var(--t2);white-space:pre-wrap;font-style:italic;border-left:2px solid rgba(124,98,255,.35);padding-left:10px;}
-.cgc-ft{padding:11px 15px;display:flex;gap:7px;border-top:1px solid var(--border);}
-.ht{display:inline-flex;padding:3px 9px;border-radius:20px;background:rgba(124,98,255,.12);color:#a394ff;font-size:11px;font-weight:500;cursor:pointer;transition:background .12s;margin:2px 3px 2px 0;}
-.ht:hover{background:rgba(124,98,255,.22);}
-.tags-row{display:flex;flex-wrap:wrap;}
-
-/* BFS */
-.bfs-wrap{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;}
-.bfs-wrap.high{background:rgba(74,222,128,.07);border:1px solid rgba(74,222,128,.2);}
-.bfs-wrap.mid{background:rgba(245,200,66,.07);border:1px solid rgba(245,200,66,.2);}
-.bfs-wrap.low{background:rgba(255,107,107,.07);border:1px solid rgba(255,107,107,.2);}
-.bfs-num{font-family:'Syne',sans-serif;font-size:24px;font-weight:800;flex-shrink:0;}
-.bfs-num.high{color:var(--a5);}
-.bfs-num.mid{color:var(--a4);}
-.bfs-num.low{color:var(--a3);}
-.bfs-info .bfs-lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;margin-bottom:2px;}
-.bfs-info .bfs-desc{font-size:11px;color:var(--muted);line-height:1.4;}
-
-/* CALIBRATION */
-.cal-row{display:flex;gap:6px;}
-.cal-btn{flex:1;text-align:center;padding:7px 4px;border-radius:7px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--s2);color:var(--muted);transition:all .15s;}
-.cal-btn:hover{border-color:var(--b2);color:var(--text);}
-
-/* POSTED CARD */
-.pc{background:var(--s1);border:1px solid var(--border);border-radius:13px;padding:14px;margin-bottom:10px;}
-.pc.no-v{border-left:3px solid var(--a4);}
-.pc.has-v{border-left:3px solid var(--a5);}
-.pc-hook{font-family:'Syne',sans-serif;font-size:13.5px;font-weight:700;line-height:1.35;margin-bottom:7px;}
-.pc-meta{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;}
-.vi-row{display:flex;gap:7px;align-items:center;}
-.vi{flex:1;background:var(--s2);border:1px solid var(--border);border-radius:7px;padding:8px 11px;color:var(--text);font-size:13px;font-family:'DM Sans',sans-serif;outline:none;}
-.vi:focus{border-color:var(--a2);}
-
-/* REPORT */
-.rep-sec{background:var(--s1);border:1px solid var(--border);border-radius:13px;padding:14px;margin-bottom:10px;}
-.rep-ttl{font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;}
-.rep-item{display:flex;align-items:center;gap:10px;margin-bottom:9px;}
-.rep-rank{font-family:'Syne',sans-serif;font-size:16px;font-weight:800;color:var(--muted);width:22px;flex-shrink:0;}
-.rep-c{flex:1;min-width:0;}
-.rep-txt{font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:3px;}
-.rep-bar{height:3px;background:rgba(255,255,255,.05);border-radius:2px;overflow:hidden;}
-.rep-bf{height:100%;border-radius:2px;background:var(--accent);}
-.rep-v{font-size:12px;font-weight:700;color:var(--accent);flex-shrink:0;}
-
-/* DRIFT ALERT */
-.drift{background:rgba(255,107,107,.07);border:1px solid rgba(255,107,107,.2);border-radius:12px;padding:13px;margin-bottom:12px;display:flex;gap:11px;align-items:flex-start;}
-.drift-title{font-size:13px;font-weight:700;color:var(--a3);margin-bottom:3px;}
-.drift-desc{font-size:12px;color:var(--muted);line-height:1.45;}
-
-/* TABS */
-.tabs{display:flex;background:var(--s2);border-radius:10px;padding:3px;margin-bottom:14px;}
-.tab{flex:1;text-align:center;padding:7px 3px;border-radius:8px;font-size:12px;font-weight:500;color:var(--muted);cursor:pointer;transition:all .15s;}
-.tab.active{background:var(--s4);color:var(--text);}
-.tabp{display:none;}.tabp.active{display:block;animation:pIn .18s ease;}
-
-/* OVERLAYS */
-.ov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.75);z-index:200;align-items:flex-end;justify-content:center;backdrop-filter:blur(5px);}
-.ov.open{display:flex;}
-.sheet{background:var(--s1);border-radius:22px 22px 0 0;width:100%;max-width:480px;max-height:94svh;overflow-y:auto;padding:0 18px 36px;}
-.sheet::-webkit-scrollbar{display:none;}
-.sh-hd{padding:14px 0 14px;display:flex;flex-direction:column;align-items:center;}
-.sh-handle{width:36px;height:4px;background:var(--s4);border-radius:2px;margin-bottom:16px;}
-.sh-title{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;margin-bottom:3px;}
-.sh-sub{font-size:12.5px;color:var(--muted);}
-
-/* ONBOARDING */
-.ob-step{display:none;}.ob-step.active{display:block;animation:pIn .2s ease;}
-.ob-dots{display:flex;gap:5px;margin-bottom:20px;justify-content:center;}
-.od{width:7px;height:7px;border-radius:50%;background:var(--s4);transition:all .2s;}
-.od.done{background:var(--accent);}
-.od.cur{background:var(--a2);width:20px;border-radius:3px;}
-.ob-h{font-family:'Syne',sans-serif;font-size:20px;font-weight:800;margin-bottom:4px;}
-.ob-s{font-size:12.5px;color:var(--muted);margin-bottom:18px;line-height:1.5;}
-.ob-hint{font-size:11.5px;color:var(--a2);background:rgba(124,98,255,.08);border:1px solid rgba(124,98,255,.18);border-radius:8px;padding:9px 12px;margin-bottom:14px;line-height:1.5;}
-
-/* SETTINGS */
-.sg-lbl{font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.12em;margin-bottom:9px;padding-left:2px;}
-.si{display:flex;align-items:center;justify-content:space-between;padding:13px 14px;background:var(--s1);border:1px solid var(--border);border-radius:11px;margin-bottom:7px;cursor:pointer;transition:border-color .15s;}
-.si:hover{border-color:var(--b2);}
-.si-l{display:flex;align-items:center;gap:11px;}
-.si-icon{font-size:17px;width:20px;text-align:center;}
-.si-lbl{font-size:13.5px;font-weight:500;}
-.si-val{font-size:12px;color:var(--muted);max-width:180px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-
-/* TOAST */
-#tw{position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:9999;display:flex;flex-direction:column;gap:6px;pointer-events:none;width:90%;max-width:420px;}
-.toast{display:flex;align-items:center;gap:9px;padding:11px 14px;border-radius:10px;font-size:12.5px;font-weight:500;animation:tIn .22s ease;}
-.toast.ok{background:rgba(74,222,128,.13);border:1px solid rgba(74,222,128,.26);color:var(--a5);}
-.toast.err{background:rgba(255,107,107,.13);border:1px solid rgba(255,107,107,.26);color:var(--a3);}
-.toast.inf{background:rgba(124,98,255,.13);border:1px solid rgba(124,98,255,.26);color:#a394ff;}
-.toast.out{animation:tOut .2s ease forwards;}
-@keyframes tIn{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
-@keyframes tOut{to{opacity:0;transform:translateY(-8px)}}
-
-.cfl{position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(201,255,62,.92);color:#000;font-size:13px;font-weight:700;padding:10px 20px;border-radius:10px;z-index:9999;opacity:0;pointer-events:none;transition:opacity .15s;}
-.cfl.on{opacity:1;}
-
-/* WELCOME */
-#welcome{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100svh;padding:28px 22px;text-align:center;background:radial-gradient(ellipse at 50% 0%,rgba(124,98,255,.17) 0%,transparent 60%);}
-.w-tag{font-size:10px;font-weight:700;letter-spacing:.28em;text-transform:uppercase;color:var(--a2);margin-bottom:16px;}
-.w-title{font-family:'Syne',sans-serif;font-size:clamp(28px,8vw,48px);font-weight:800;line-height:1.07;margin-bottom:14px;max-width:340px;}
-.w-title span{color:var(--accent);}
-.w-sub{font-size:13.5px;color:var(--muted);max-width:340px;line-height:1.68;margin-bottom:26px;}
-.w-btns{display:flex;flex-direction:column;gap:9px;width:100%;max-width:300px;}
-
-/* MISC */
-.mt8{margin-top:8px;}.mt12{margin-top:12px;}.mt16{margin-top:16px;}
-.flex{display:flex;align-items:center;}.flex-b{display:flex;align-items:center;justify-content:space-between;}
-.fmuted{color:var(--muted);}.faccent{color:var(--accent);}
-.fs12{font-size:12px;}.fs11{font-size:11px;}.fs10{font-size:10px;}
-.fw7{font-weight:700;}.fw6{font-weight:600;}
-.empty{text-align:center;padding:32px 16px;color:var(--muted);}
-.empty-i{font-size:34px;margin-bottom:10px;}
-.empty-t{font-size:14px;font-weight:600;color:var(--t2);margin-bottom:5px;}
-.empty-d{font-size:12px;line-height:1.5;}
-</style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CreatorOS v5</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+  <style>
+    :root{--bg:#0b0c14;--card:#141726;--muted:#96a0bd;--txt:#eef2ff;--acc:#c9ff3e;--err:#ff7b7b;--ok:#5ce1a8}
+    *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--txt);font:14px/1.45 system-ui,-apple-system,Segoe UI,Roboto,sans-serif}
+    .wrap{max-width:520px;margin:0 auto;min-height:100vh;padding:16px}
+    .card{background:var(--card);border:1px solid #232846;border-radius:14px;padding:14px;margin-bottom:12px}
+    h1,h2{margin:0 0 8px} p{margin:0 0 10px;color:var(--muted)}
+    .row{display:flex;gap:8px;flex-wrap:wrap}.hidden{display:none!important}
+    input,textarea,select{width:100%;padding:10px;border-radius:10px;border:1px solid #2a3050;background:#0f1323;color:var(--txt)}
+    button{border:0;border-radius:10px;padding:10px 12px;cursor:pointer;font-weight:600}
+    .btn{background:var(--acc);color:#111}.btn2{background:#222845;color:var(--txt)}.btn3{background:#1d3a31;color:#c8ffe8}
+    .btn:disabled,.btn2:disabled,.btn3:disabled{opacity:.55;cursor:not-allowed}
+    .tag{display:inline-block;padding:4px 8px;border-radius:999px;background:#222845;color:#c8d0ee;font-size:12px}
+    .toast{position:fixed;top:12px;left:50%;transform:translateX(-50%);background:#1b2036;border:1px solid #313a64;color:#fff;padding:10px 12px;border-radius:10px;z-index:9999}
+    .toast.err{border-color:#6b2c2c;color:#ffd6d6}.toast.ok{border-color:#235b47;color:#c9ffe8}
+    .list{display:grid;gap:8px}
+    .small{font-size:12px;color:var(--muted)}
+  </style>
 </head>
 <body>
-
-<div class="ov" id="authOverlay" style="background:var(--bg); z-index:99999; display: flex; align-items: center; justify-content: center;">
-  <div style="padding: 24px; width: 90%; max-width: 400px; background: var(--s1); border-radius: 16px; border: 1px solid var(--border); text-align: center;">
-    <h2 style="font-family: 'Syne', sans-serif; font-size: 24px; margin-bottom: 8px;">Login <span style="color:var(--accent);">CreatorOS</span></h2>
-    <p style="font-size: 13px; color: var(--muted); margin-bottom: 24px;">Masuk ke sistem memori brand kamu.</p>
-    
-    <div class="ig" style="text-align: left;">
-      <label class="il">Email</label>
-      <input class="inp" id="authEmail" type="email" placeholder="nama@email.com" />
-    </div>
-    <div class="ig" style="text-align: left; margin-bottom: 24px;">
-      <label class="il">Password</label>
-      <input class="inp" id="authPassword" type="password" placeholder="••••••••" />
-    </div>
-    
-    <button class="btn btn-p btn-full" onclick="handleLogin()" style="margin-bottom: 12px; font-size: 15px; padding: 12px;">Login ke Sistem</button>
-    <button class="btn btn-g btn-full" onclick="handleRegister()" style="font-size: 14px; padding: 12px;">Daftar Akun Baru</button>
-  </div>
-</div>
-
-<div id="tw"></div>
-<div class="cfl" id="cfl">📋 Disalin!</div>
-
-<div id="welcome">
-  <p class="w-tag">Creator Specialist OS · v4.1</p>
-  <h1 class="w-title">Posting Dulu, <span>DNA Menyusul</span></h1>
-  <p class="w-sub">Brand DNA terbaik lahir dari data nyata — bukan form. Setup dalam 2 menit, langsung buat konten pertama, sistem belajar dari hasilnya.</p>
-  <div class="w-btns">
-    <button class="btn btn-p btn-full" style="font-size:15px;padding:14px;" onclick="startOb()">🚀 Mulai & Posting Hari Ini</button>
-    <button class="btn btn-g btn-full" onclick="showAuth()">Sudah punya akun →</button>
-  </div>
-</div>
-
-<div class="ov" id="obOv">
-  <div class="sheet" style="border-radius:22px;margin:12px;padding:20px 18px 32px;">
-    <div class="ob-dots" id="obDots"></div>
-
-    <div class="ob-step active" id="ob1">
-      <p class="ob-h">Siapa Brand Kamu? 👋</p>
-      <p class="ob-s">Isi dulu, langsung buat konten hari ini. DNA belajar dari performa nyata — bukan dari jawabanmu di form ini.</p>
-      <div class="ob-hint">🚀 <strong>Filosofi baru:</strong> Posting dulu, DNA belajar dari data. Semakin banyak konten + views yang kamu masukkan, semakin tajam sistemnya.</div>
-      <div class="ig"><label class="il">Nama Brand *</label><input class="inp" id="ob_brand" placeholder="StyleByRani, TechWithAdi..."/><p class="ferr" id="fe_brand">Wajib diisi</p></div>
-      <div class="ig"><label class="il">Niche / Industri *</label><input class="inp" id="ob_niche" placeholder="Fashion Hijab Budget, Kuliner Sehat..."/><p class="ferr" id="fe_niche">Wajib diisi</p></div>
-      <div class="g2">
-        <div class="ig" style="margin-bottom:0"><label class="il">Produk / Layanan</label><input class="inp" id="ob_product" placeholder="Jual baju, Affiliate..."/></div>
-        <div class="ig" style="margin-bottom:0"><label class="il">Target Audience</label><input class="inp" id="ob_audience" placeholder="Ibu muda 25-35..."/></div>
+  <div class="wrap">
+    <section id="welcomeView" class="card">
+      <h1>CreatorOS <span class="tag">v5 Rebuild</span></h1>
+      <p>Flow baru: isi DNA brand dulu, setelah itu bebas login cloud atau lanjut mode lokal.</p>
+      <div class="row">
+        <button id="startBtn" class="btn">🚀 Mulai Isi DNA</button>
+        <button id="openAuthBtn" class="btn2">Sudah punya akun</button>
       </div>
-      <button class="btn btn-p btn-full mt12" onclick="obNext(1)"><span class="bl">Lanjut →</span><span class="sp"></span></button>
-    </div>
+    </section>
 
-    <div class="ob-step" id="ob2">
-      <p class="ob-h">Batas Brand Kamu</p>
-      <p class="ob-s">Pertanyaan negatif mendefinisikan brand lebih tajam dari pertanyaan positif.</p>
-      <div class="ob-hint">💡 Sistem menggunakan ini untuk mencegah konten yang melemahkan sinyal brand kamu.</div>
-      <div class="ig"><label class="il">Topik yang TIDAK PERNAH kamu posting</label><textarea class="ta" id="ob_forbidden" placeholder="politik, drama artis, produk yang tidak aku percaya..."></textarea></div>
-      <div class="ig"><label class="il">Yang membuat brand kamu marah kalau dilakukan orang lain</label><textarea class="ta" id="ob_angry" placeholder="clickbait, review palsu, flexing berlebihan..."></textarea></div>
-      <div class="ig" style="margin-bottom:0"><label class="il">Tipe audience yang BUKAN target kamu</label><input class="inp" id="ob_notfor" placeholder="orang yang cari gratisan, yang suka drama..."/></div>
-      <div class="flex mt12" style="gap:9px;">
-        <button class="btn btn-g" style="padding:12px 18px;" onclick="obBack(2)">←</button>
-        <button class="btn btn-p" style="flex:1;justify-content:center;padding:12px;" onclick="obNext(2)"><span class="bl">Lanjut →</span><span class="sp"></span></button>
+    <section id="onboardView" class="card hidden">
+      <h2>Onboarding DNA Brand</h2>
+      <p>Isi ringkas dulu. Nanti bisa di-edit lagi.</p>
+      <label>Nama Brand</label><input id="brandInput" placeholder="StyleByRani" />
+      <label>Niche</label><input id="nicheInput" placeholder="Fashion Hijab" />
+      <label>Audience</label><input id="audInput" placeholder="Cewek 18-30" />
+      <label>Boundary (yang tidak boleh dibahas)</label><textarea id="boundInput" rows="3" placeholder="contoh: politik, hoax"></textarea>
+      <div class="row" style="margin-top:10px">
+        <button id="buildDnaBtn" class="btn">🧬 Build DNA</button>
+        <button id="backWelcomeBtn" class="btn2">Kembali</button>
       </div>
-    </div>
+      <div id="dnaPreview" class="card hidden" style="margin-top:10px"></div>
+    </section>
 
-    <div class="ob-step" id="ob3">
-      <p class="ob-h">Suara & Platform</p>
-      <p class="ob-s">Konsistensi suara adalah yang paling cepat dikenali algoritma dan audiens.</p>
-      <div class="ig"><label class="il">Kata-kata yang SELALU muncul saat ngobrol soal brand ini</label><input class="inp" id="ob_sig" placeholder="jujur, worth it, aku buktiin sendiri, gak bohong..."/></div>
-      <div class="ig"><label class="il">Kalau brand kamu adalah manusia, dia seperti siapa?</label><input class="inp" id="ob_persona" placeholder="teman yang jujur dan langsung, guru yang sabar..."/></div>
-      <div class="ig"><label class="il">Platform Utama</label>
-        <div style="display:flex;flex-wrap:wrap;gap:7px;" id="ptags">
-          <span class="tag sel" onclick="tgl(this)">📱 TikTok</span>
-          <span class="tag" onclick="tgl(this)">📸 Instagram</span>
-          <span class="tag" onclick="tgl(this)">▶️ YouTube Shorts</span>
-          <span class="tag" onclick="tgl(this)">🛍️ Shopee Video</span>
-        </div>
+    <section id="authView" class="card hidden">
+      <h2>Login / Daftar</h2>
+      <p>Setelah DNA jadi, login untuk sinkron cloud. Kalau gagal, lanjut lokal dulu.</p>
+      <label>Email</label><input id="emailInput" type="email" placeholder="kamu@email.com" />
+      <label>Password</label><input id="passInput" type="password" placeholder="minimal 6 karakter" />
+      <div class="row" style="margin-top:10px">
+        <button id="loginBtn" class="btn">Login</button>
+        <button id="registerBtn" class="btn2">Daftar</button>
       </div>
-      <div class="ig" style="margin-bottom:0"><label class="il">Creator Style</label>
-        <div style="display:flex;flex-wrap:wrap;gap:7px;" id="stags">
-          <span class="tag" onclick="sgl(this,'stags')">🎭 Faceless</span>
-          <span class="tag sel" onclick="sgl(this,'stags')">😊 Face + Voice</span>
-          <span class="tag" onclick="sgl(this,'stags')">🎙️ Voice Only</span>
-          <span class="tag" onclick="sgl(this,'stags')">✍️ Text Only</span>
-        </div>
+      <div class="row" style="margin-top:8px">
+        <button id="diagBtn" class="btn2">Tes Koneksi Auth</button>
+        <button id="localBtn" class="btn3">Lanjut Mode Lokal</button>
       </div>
-      <div class="flex mt12" style="gap:9px;">
-        <button class="btn btn-g" style="padding:12px 18px;" onclick="obBack(3)">←</button>
-        <button class="btn btn-p" style="flex:1;justify-content:center;padding:12px;" onclick="obNext(3)"><span class="bl">Lanjut →</span><span class="sp"></span></button>
-      </div>
-    </div>
+      <p class="small">Mode lokal = data tersimpan di perangkat ini.</p>
+    </section>
 
-    <div class="ob-step" id="ob4">
-      <p class="ob-h">Waktu & Tujuan</p>
-      <p class="ob-s">Konsistensi yang realistis lebih baik dari ambisi yang tidak terlaksana.</p>
-      <div class="ig"><label class="il">Waktu per Hari</label>
-        <div style="display:flex;gap:7px;" id="ttags">
-          <span class="tag" onclick="sgl(this,'ttags')" style="flex:1;justify-content:center;">⚡ 30 mnt</span>
-          <span class="tag sel" onclick="sgl(this,'ttags')" style="flex:1;justify-content:center;">🕐 1 jam</span>
-          <span class="tag" onclick="sgl(this,'ttags')" style="flex:1;justify-content:center;">⏰ 2+ jam</span>
-        </div>
-      </div>
-      <div class="ig"><label class="il">Level Saat Ini</label>
-        <div style="display:flex;gap:7px;" id="lvtags">
-          <span class="tag sel" onclick="sgl(this,'lvtags')" style="flex:1;justify-content:center;">🌱 Baru Mulai</span>
-          <span class="tag" onclick="sgl(this,'lvtags')" style="flex:1;justify-content:center;">🌿 Sudah Jalan</span>
-          <span class="tag" onclick="sgl(this,'lvtags')" style="flex:1;justify-content:center;">🌳 Aktif</span>
-        </div>
-      </div>
-      <div class="ig" style="margin-bottom:0"><label class="il">Tujuan Utama</label>
-        <div style="display:flex;flex-wrap:wrap;gap:7px;" id="gtags">
-          <span class="tag" onclick="tgl(this)">👥 Followers</span>
-          <span class="tag sel" onclick="tgl(this)">💰 Sales</span>
-          <span class="tag" onclick="tgl(this)">🎯 Authority</span>
-          <span class="tag sel" onclick="tgl(this)">✨ Personal Brand</span>
-        </div>
-      </div>
-      <div class="flex mt12" style="gap:9px;">
-        <button class="btn btn-g" style="padding:12px 18px;" onclick="obBack(4)">←</button>
-        <button class="btn btn-p" id="obBuildBtn" style="flex:1;justify-content:center;padding:12px;" onclick="obNext(4)"><span class="bl">🧬 Build Brand DNA</span><span class="sp"></span></button>
-      </div>
-    </div>
-
-    <div class="ob-step" id="ob5">
-      <p class="ob-h" style="text-align:center;">🧬 Brand DNA Siap!</p>
-      <p class="ob-s" style="text-align:center;">AI membangun fondasi brand memory kamu. Ini yang menjaga setiap konten tetap konsisten.</p>
-      <div class="aib" style="margin-bottom:16px;">
-        <p class="ait" id="ob_pos" style="font-size:14px;font-weight:600;font-family:'Syne',sans-serif;color:var(--text);line-height:1.4;">Membangun positioning...<span class="aic" id="ob_cur" style="display:inline-block;"></span></p>
-      </div>
-      <div style="margin-bottom:14px;">
-        <p class="fs10 fw7 fmuted" style="text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px;">Content Pillars</p>
-        <div style="display:flex;flex-wrap:wrap;gap:6px;" id="ob_pillars"></div>
-      </div>
-      <div style="margin-bottom:16px;">
-        <p class="fs10 fw7 fmuted" style="text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px;">Brand Boundaries</p>
-        <div id="ob_bounds"></div>
-      </div>
-      <button class="btn btn-p btn-full" id="obEnterBtn" onclick="finishOb()" disabled style="padding:13px;font-size:14px;"><span class="bl">Mulai Bangun Brand Kamu 🚀</span><span class="sp"></span></button>
-    </div>
-  </div>
-</div>
-
-<div class="ov" id="viewSh">
-  <div class="sheet">
-    <div class="sh-hd"><div class="sh-handle"></div><p class="sh-title">📊 Input Performa</p><p class="sh-sub" id="vs_hook" style="font-size:11.5px;text-align:center;max-width:90%;"></p></div>
-    <div class="g2" style="margin-bottom:12px;">
-      <div class="ig" style="margin-bottom:0"><label class="il">Views 👁️</label><input class="vi" type="number" id="vs_views" placeholder="0"/></div>
-      <div class="ig" style="margin-bottom:0"><label class="il">Likes ❤️</label><input class="vi" type="number" id="vs_likes" placeholder="0"/></div>
-      <div class="ig" style="margin-bottom:0"><label class="il">Comments 💬</label><input class="vi" type="number" id="vs_comments" placeholder="0"/></div>
-      <div class="ig" style="margin-bottom:0"><label class="il">Saves 🔖</label><input class="vi" type="number" id="vs_saves" placeholder="0"/></div>
-    </div>
-    <div class="ig"><label class="il">Orders / Konversi</label><input class="vi" type="number" id="vs_orders" placeholder="0"/></div>
-    <div class="ig"><label class="il">Hook efektif?</label>
-      <div style="display:flex;gap:7px;" id="vs_hook_rate">
-        <span class="tag" onclick="sgl(this,'vs_hook_rate')" style="flex:1;justify-content:center;">✅ Sangat</span>
-        <span class="tag" onclick="sgl(this,'vs_hook_rate')" style="flex:1;justify-content:center;">👌 Lumayan</span>
-        <span class="tag" onclick="sgl(this,'vs_hook_rate')" style="flex:1;justify-content:center;">❌ Kurang</span>
-      </div>
-    </div>
-    <div class="ig"><label class="il">Catatan (opsional)</label><textarea class="ta" id="vs_notes" placeholder="apa yang bikin konten ini berhasil / tidak berhasil..." style="min-height:56px;"></textarea></div>
-    <div class="flex" style="gap:8px;">
-      <button class="btn btn-g" style="padding:12px 16px;" onclick="closeOv('viewSh')">Batal</button>
-      <button class="btn btn-p" id="vsSaveBtn" style="flex:1;justify-content:center;padding:12px;" onclick="saveViews()"><span class="bl">✦ Simpan & Kalibrasi DNA</span><span class="sp"></span></button>
-    </div>
-  </div>
-</div>
-
-<div class="ov" id="editSh">
-  <div class="sheet">
-    <div class="sh-hd"><div class="sh-handle"></div><p class="sh-title">Edit Brand Profile</p></div>
-    <div class="ig"><label class="il">Nama Brand</label><input class="inp" id="ep_brand"/></div>
-    <div class="ig"><label class="il">Niche</label><input class="inp" id="ep_niche"/></div>
-    <div class="ig"><label class="il">Produk / Layanan</label><input class="inp" id="ep_product"/></div>
-    <div class="ig"><label class="il">Target Audience</label><input class="inp" id="ep_audience"/></div>
-    <div class="ig"><label class="il">Topik Terlarang</label><textarea class="ta" id="ep_forbidden"></textarea></div>
-    <div class="ig"><label class="il">Kata Signature</label><input class="inp" id="ep_sig"/></div>
-    <div class="flex" style="gap:8px;">
-      <button class="btn btn-g" style="padding:12px 16px;" onclick="closeOv('editSh')">Batal</button>
-      <button class="btn btn-p" style="flex:1;justify-content:center;padding:12px;" onclick="saveProfile()"><span class="bl">Simpan</span><span class="sp"></span></button>
-    </div>
-  </div>
-</div>
-
-<div id="app" style="display:none;">
-  <div class="hdr">
-    <div class="hdr-brand">Creator<span>OS</span></div>
-    <div class="hdr-r">
-      <div class="streak-chip">🔥 <span id="hdr_streak">0</span></div>
-      <div class="av" id="hdr_av" onclick="showPage('settings')">C</div>
-    </div>
-  </div>
-
-  <div class="ca" id="ca">
-
-    <div class="page active" id="page-home">
-      <div class="dna-card">
-        <div class="dna-pulse"><div class="dna-dot"></div><span class="dna-lbl">Brand DNA · Aktif</span></div>
-        <p class="dna-name" id="h_brand">—</p>
-        <p class="dna-pos" id="h_pos">Positioning kamu akan muncul di sini.</p>
-        <div class="dna-bar-row">
-          <span class="dna-bar-label">DNA Health</span>
-          <div class="dna-bar-track"><div class="dna-bar-fill" id="h_dna_bar" style="width:0%"></div></div>
-          <span class="dna-bar-pct" id="h_dna_pct">0%</span>
-        </div>
-      </div>
-
-      <div style="display:flex;gap:8px;margin-bottom:12px;">
-        <button class="btn btn-p btn-sm" style="flex:1;justify-content:center;" onclick="showPage('generate')">✦ Buat Konten</button>
-        <button class="btn btn-pu btn-sm" style="flex:1;justify-content:center;" onclick="showPage('strategy')">🗺️ Strategi</button>
-        <button class="btn btn-g btn-sm" style="flex:1;justify-content:center;" onclick="showPage('analyze')">📊 Analitik</button>
-      </div>
-
-      <div class="lv-card">
-        <div class="lv-badge">⚡ LEVEL <span id="h_lv">1</span></div>
-        <p class="lv-name" id="h_lvname">Beginner Creator</p>
-        <div class="xp-track"><div class="xp-fill" id="h_xp_bar" style="width:0%"></div></div>
-        <div class="xp-lbl"><span id="h_xp_cur">0 XP</span><span id="h_xp_next">Level 2 →</span></div>
-        <p style="font-size:10px;color:var(--muted);margin-top:7px;line-height:1.5;" id="h_xp_breakdown">XP dari views: 0 · Bonus kualitas: 0 · Streak: 0</p>
-      </div>
-
-      <div class="stat-row">
-        <div class="stat-box"><div class="sn" id="h_total">0</div><div class="sl">Konten</div></div>
-        <div class="stat-box"><div class="sn" id="h_views">0</div><div class="sl">Views</div></div>
-        <div class="stat-box"><div class="sn" id="h_streak">0</div><div class="sl">Streak</div></div>
-      </div>
-
-      <div class="drift" id="drift" style="display:none;">
-        <span style="font-size:18px;">⚠️</span>
-        <div><p class="drift-title">Brand Drift Terdeteksi</p><p class="drift-desc" id="drift_msg"></p></div>
-      </div>
-
-      <div class="stl">🎯 Daily Mission <span class="stag" id="h_m_ct">0/4</span></div>
-      <div id="h_missions"></div>
-
-      <div class="stl mt8">🧬 DNA Sudah Belajar <span class="stag" id="h_dna_ct">0 sinyal</span></div>
-      <div id="h_dna_learned"></div>
-
-      <div class="stl mt8">📅 Streak Bulan Ini <span class="stag" id="h_streak_lbl"></span></div>
-      <div class="card" style="padding:12px 14px;">
-        <div id="h_streak_cal" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;"></div>
-        <div style="display:flex;gap:12px;margin-top:10px;">
-          <div style="display:flex;align-items:center;gap:4px;"><div style="width:10px;height:10px;border-radius:3px;background:var(--accent);"></div><span style="font-size:10px;color:var(--muted);">Posting</span></div>
-          <div style="display:flex;align-items:center;gap:4px;"><div style="width:10px;height:10px;border-radius:3px;border:2px solid var(--a2);"></div><span style="font-size:10px;color:var(--muted);">Hari ini</span></div>
-          <div style="display:flex;align-items:center;gap:4px;"><div style="width:10px;height:10px;border-radius:3px;background:var(--s3);"></div><span style="font-size:10px;color:var(--muted);">Tidak posting</span></div>
-        </div>
-      </div>
-
-      <div class="stl mt8">✦ Brand Guardian Insight</div>
+    <section id="appView" class="hidden">
       <div class="card">
-        <div class="flex-b" style="margin-bottom:10px;">
-          <p class="fs12 fmuted">Rekomendasi harian berbasis Brand DNA</p>
-          <button class="btn btn-g btn-sm" id="recBtn" onclick="loadRec()"><span class="bl">🔄</span><span class="sp"></span></button>
+        <h2 id="appBrand">—</h2>
+        <p id="appPos">DNA belum dibuat.</p>
+        <div class="row">
+          <span class="tag" id="modeTag">MODE</span>
+          <button id="logoutBtn" class="btn2">Logout</button>
         </div>
-        <div class="aib" id="h_rec"><p class="ait" style="color:var(--muted);font-style:italic;">Klik 🔄 untuk insight.</p></div>
       </div>
-    </div>
-
-    <div class="page" id="page-generate">
-      <p class="ph">✦ Generate Konten</p>
-      <p class="ps">Setiap konten dikalibrasi dengan Brand DNA — menjaga sinyal brand tetap konsisten ke algoritma.</p>
 
       <div class="card">
-        <div class="g2" style="gap:10px;margin-bottom:12px;">
-          <div class="ig" style="margin-bottom:0"><label class="il">Platform</label>
-            <select class="sel" id="g_platform" onchange="showPlatHint()">
-              <option>TikTok</option><option>Instagram Reels</option><option>YouTube Shorts</option><option>Shopee Video</option>
-            </select>
-          </div>
-          <div class="ig" style="margin-bottom:0"><label class="il">Format</label>
-            <select class="sel" id="g_format">
-              <option>POV Storytelling</option><option>Tutorial / Tips</option><option>Review Jujur</option><option>Before & After</option><option>Educational</option><option>Behind the Scene</option><option>Comparison</option><option>Challenge</option>
-            </select>
-          </div>
+        <div class="row" style="margin-bottom:8px">
+          <button id="tabGenBtn" class="btn">Generate</button>
+          <button id="tabHistBtn" class="btn2">Riwayat</button>
+          <button id="tabAnBtn" class="btn2">Analitik</button>
         </div>
-        <div class="ig">
-          <label class="il">Topik (kosongkan = AI pilihkan)</label>
-          <div style="display:flex;gap:7px;">
-            <input class="inp" id="g_topic" placeholder="review sepatu import, tips OOTD winter..." style="flex:1;"/>
-            <button class="btn btn-pu btn-sm" id="suggestTopicBtn" onclick="suggestTopic()" title="AI pilihkan topik terbaik untuk brand kamu hari ini"><span class="bl">💡</span><span class="sp"></span></button>
-          </div>
-          <div id="topicSuggestions" style="display:none;margin-top:8px;"></div>
-        </div>
-        <div class="ig" style="margin-bottom:14px;"><label class="il">Jumlah Konten</label>
-          <div style="display:flex;gap:7px;" id="g_count">
-            <span class="tag sel" data-val="1" onclick="sgl(this,'g_count')" style="flex:1;justify-content:center;">1</span>
-            <span class="tag" data-val="2" onclick="sgl(this,'g_count')" style="flex:1;justify-content:center;">2</span>
-            <span class="tag" data-val="3" onclick="sgl(this,'g_count')" style="flex:1;justify-content:center;">3</span>
-            <span class="tag" data-val="5" onclick="sgl(this,'g_count')" style="flex:1;justify-content:center;">5</span>
-          </div>
-        </div>
-        <div id="platHint" style="display:none;background:rgba(124,98,255,.07);border:1px solid rgba(124,98,255,.18);border-radius:8px;padding:9px 12px;font-size:11.5px;color:var(--t2);line-height:1.5;margin-bottom:12px;"></div>
-        <button class="btn btn-p btn-full" id="genBtn" onclick="generateContent()"><span class="bl">🧬 Generate On-Brand Content</span><span class="sp"></span></button>
-      </div>
 
-      <div id="filmSec" style="display:none;">
-        <div class="stl">🎬 Cara Pengambilan Konten</div>
-        <div class="card"><div class="aib"><p class="ait" id="filmTxt"></p></div></div>
-      </div>
+        <div id="tabGen">
+          <h2>Generate Konten</h2>
+          <label>Topik</label><input id="topicInput" placeholder="Kosongkan biar AI pilih" />
+          <button id="genBtn" class="btn" style="margin-top:10px">✦ Generate 3 Ide</button>
+          <div id="ideas" class="list" style="margin-top:10px"></div>
+        </div>
 
-      <div id="genList"></div>
-    </div>
+        <div id="tabHist" class="hidden">
+          <h2>Riwayat Konten</h2>
+          <div id="histList" class="list"></div>
+        </div>
 
-    <div class="page" id="page-analyze">
-      <p class="ph">📊 Smart Analyze</p>
-      <p class="ps">Tracking performa konten & laporan berbasis Brand DNA</p>
-      <div class="tabs" id="atabs">
-        <div class="tab active" onclick="switchTab('posted',0)">📝 Diposting</div>
-        <div class="tab" onclick="switchTab('report',1)">📈 Report</div>
-        <div class="tab" onclick="switchTab('history',2)">📚 Semua</div>
-        <div class="tab" onclick="switchTab('monthly',3)">📅 Bulanan</div>
-      </div>
-      <div class="tabp active" id="tab-posted">
-        <div class="flex-b" style="margin-bottom:10px;">
-          <div style="display:flex;gap:6px;flex-wrap:wrap;">
-            <span class="badge bp" id="a_pc">0 diposting</span>
-            <span class="badge bg2" id="a_vb">0 views</span>
-            <span class="badge bo" id="a_erb">0% ER</span>
-          </div>
-          <button class="btn btn-g btn-sm" onclick="switchTab('report',1)">Report →</button>
-        </div>
-        <div id="a_mini_chart"></div>
-        <div id="postedList"></div>
-      </div>
-      <div class="tabp" id="tab-report">
-        <div class="flex-b" style="margin-bottom:12px;">
-          <p class="fs12 fmuted">Analisis AI dari semua konten yang diposting</p>
-          <button class="btn btn-pu btn-sm" id="repBtn" onclick="generateReport()"><span class="bl">✦ Analisis AI</span><span class="sp"></span></button>
-        </div>
-        <div id="reportContent"><div class="empty"><div class="empty-i">📈</div><p class="empty-t">Butuh minimal 3 konten</p><p class="empty-d">Post konten & input views, lalu klik Analisis AI</p></div></div>
-      </div>
-      <div class="tabp" id="tab-history">
-        <div class="flex-b" style="margin-bottom:12px;">
-          <p class="fs12 fmuted" id="hist_ct">Semua konten</p>
-          <button class="btn btn-rd btn-sm" onclick="clearDrafts()">🗑 Hapus Draft</button>
-        </div>
-        <div id="histList"></div>
-      </div>
-      <div class="tabp" id="tab-monthly">
-        <div id="monthlyContent"><div class="empty"><div class="empty-i">📅</div><p class="empty-t">Analisis Bulanan</p><p class="empty-d">Laporan bulanan + strategi rebuild</p></div></div>
-        <button class="btn btn-p btn-full mt12" id="monthBtn" onclick="generateMonthly()"><span class="bl">✦ Generate Laporan Bulanan</span><span class="sp"></span></button>
-      </div>
-    </div>
-
-    <div class="page" id="page-strategy">
-      <p class="ph">🗺️ Strategi</p>
-      <p class="ps">Rencana mingguan & evolusi creator berbasis Brand DNA</p>
-
-      <div class="stl">📅 Strategi Minggu Ini</div>
-      <div class="card">
-        <div class="flex-b" style="margin-bottom:10px;">
-          <p class="fs11 fmuted" id="weekLbl"></p>
-          <button class="btn btn-g btn-sm" id="weekBtn" onclick="generateWeekly()"><span class="bl">✦ Generate</span><span class="sp"></span></button>
-        </div>
-        <div id="weekContent"><p class="fs12 fmuted">Klik Generate untuk strategi berbasis Brand DNA kamu.</p></div>
-      </div>
-
-      <div class="stl mt8">🧬 DNA Health Breakdown</div>
-      <div class="card" id="dnaHealthCard">
-        <p class="card-sub">Kesehatan tiap komponen Brand DNA dari data yang terkumpul.</p>
-        <div id="dnaHealthList"></div>
-        <div id="bfsAccuracyBox" style="display:none;margin-top:10px;padding:10px 12px;background:rgba(124,98,255,.07);border:1px solid rgba(124,98,255,.18);border-radius:9px;">
-          <p style="font-size:10px;font-weight:700;color:var(--a2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:3px;">🎯 Akurasi Prediksi BFS</p>
-          <p style="font-size:13px;font-weight:700;" id="bfsAccuracyVal">—</p>
-          <p style="font-size:10.5px;color:var(--muted);margin-top:2px;" id="bfsAccuracyDesc">Seberapa sering prediksi BFS terbukti oleh data views.</p>
+        <div id="tabAn" class="hidden">
+          <h2>Analitik Ringkas</h2>
+          <div id="analyticsBox" class="list"></div>
         </div>
       </div>
-
-      <div class="stl mt8">🌱 Creator Evolution</div>
-      <div class="card">
-        <div class="flex-b" style="margin-bottom:10px;">
-          <p class="fs11 fmuted">Ke mana brand kamu harus berkembang</p>
-          <button class="btn btn-g btn-sm" id="evoBtn" onclick="generateEvo()"><span class="bl">✦ Analyze</span><span class="sp"></span></button>
-        </div>
-        <div class="aib" id="evoContent"><p class="ait" style="color:var(--muted);font-style:italic;">Klik Analyze untuk rekomendasi evolusi.</p></div>
-      </div>
-    </div>
-
-    <div class="page" id="page-settings">
-      <p class="ph">⚙️ Pengaturan</p>
-      <p class="ps">Kelola Brand DNA dan preferensi kamu</p>
-      <div style="margin-bottom:18px;">
-        <p class="sg-lbl">Brand Profile</p>
-        <div class="si" onclick="openEditSh()">
-          <div class="si-l"><span class="si-icon">🧬</span><div><p class="si-lbl" id="s_brand">—</p><p class="si-val" id="s_niche">—</p></div></div>
-          <span style="color:var(--muted);">›</span>
-        </div>
-        <div class="si" onclick="openEditSh()">
-          <div class="si-l"><span class="si-icon">🎯</span><div><p class="si-lbl">Target Audience</p><p class="si-val" id="s_aud">—</p></div></div>
-          <span style="color:var(--muted);">›</span>
-        </div>
-        <div class="si" onclick="openEditSh()">
-          <div class="si-l"><span class="si-icon">❌</span><div><p class="si-lbl">Brand Boundaries</p><p class="si-val" id="s_forb">—</p></div></div>
-          <span style="color:var(--muted);">›</span>
-        </div>
-      </div>
-      <div style="margin-bottom:18px;">
-        <p class="sg-lbl">Identitas</p>
-        <div class="card" style="margin-bottom:7px;">
-          <p class="fs10 fw7 fmuted" style="text-transform:uppercase;letter-spacing:.08em;margin-bottom:6px;">Positioning Statement</p>
-          <p style="font-size:13px;color:var(--t2);line-height:1.6;font-style:italic;" id="s_pos">—</p>
-        </div>
-        <div class="si" onclick="regenDNA()">
-          <div class="si-l"><span class="si-icon">🔄</span><div><p class="si-lbl">Regenerate Brand DNA</p><p class="si-val">AI rebuild identity dari data yang ada</p></div></div>
-          <span style="color:var(--muted);">›</span>
-        </div>
-      </div>
-      <div style="margin-bottom:18px;">
-        <p class="sg-lbl">Data</p>
-        <div class="si" onclick="exportData()">
-          <div class="si-l"><span class="si-icon">📤</span><div><p class="si-lbl">Export Data</p><p class="si-val">Download semua data Brand DNA & konten</p></div></div>
-          <span style="color:var(--muted);">›</span>
-        </div>
-        <div class="si" style="border-color:rgba(255,107,107,.2);" onclick="resetApp()">
-          <div class="si-l"><span class="si-icon">🗑️</span><div><p class="si-lbl" style="color:var(--a3);">Logout / Reset Data</p><p class="si-val">Hapus lokal & kembali ke Login</p></div></div>
-        </div>
-      </div>
-      <div class="card" style="text-align:center;padding:14px;">
-        <p class="fs11 fmuted">Creator Specialist OS · v4.1 · Data-First DNA System</p>
-      </div>
-    </div>
-
-  </div><div class="bnav">
-    <div class="nt active" id="nav-home" onclick="showPage('home')"><div class="ni">🏠</div><div class="nl">Home</div></div>
-    <div class="nt" id="nav-analyze" onclick="showPage('analyze')"><div class="ni">📊</div><div class="nl">Analitik</div></div>
-    <div class="ncb" id="nav-generate" onclick="showPage('generate')">✦</div>
-    <div class="nt" id="nav-strategy" onclick="showPage('strategy')"><div class="ni">🗺️</div><div class="nl">Strategi</div></div>
-    <div class="nt" id="nav-settings" onclick="showPage('settings')"><div class="ni">⚙️</div><div class="nl">Setting</div></div>
+    </section>
   </div>
-</div>
 
 <script>
 // ════════════════════════════════════════════════════════
@@ -1702,516 +1093,20 @@ function parseContents(raw, platform, format) {
       var m = clean.match(new RegExp(key + ':\\s*([\\s\\S]+?)(?=\\n(?:HOOK|SCRIPT|CAPTION|HASHTAG|CTA|ANGLE):|$)'));
       return m ? m[1].trim() : '';
     }
-    var hook = get('HOOK');
-    if (!hook) return;
-    var caption = get('CAPTION');
-    var hashtags = get('HASHTAG').split(/\s+/).filter(function(h){return h.startsWith('#');});
-    var angle = get('ANGLE') || 'personal_story';
-    var bfs = calcBFS(hook, caption, format);
-    results.push({
-      id: Date.now() + '_' + Math.floor(Math.random()*10000),
-      hook: hook, script: get('SCRIPT'), caption: caption,
-      hashtags: hashtags, cta: get('CTA'), angle: angle,
-      platform: platform, format: format, bfs: bfs,
-      createdAt: todayStr(), posted: false, postedAt: null,
-      views: 0, likes: 0, comments: 0, saves: 0, orders: 0,
-      calibrated: false, notes: ''
-    });
-  });
-  return results;
-}
-
-function fallbackContents(count, platform, format, topic) {
-  var u = S.user, d = S.dna;
-  var t = topic || u.niche || 'konten kreator';
-
-  var formatHooks = {
-    'POV Storytelling': [
-      'POV: Kamu baru mulai ' + t + ' dan gak tau harus ngapain',
-      'POV: Semua orang bilang ' + t + ' gampang, sampai kamu nyoba sendiri',
-      'POV: Kamu akhirnya nemuin cara yang beneran works untuk ' + t,
-    ],
-    'Tutorial / Tips': [
-      t + ' dalam 60 detik — ini yang selama ini kamu cari',
-      '3 hal yang bikin ' + t + ' kamu gak berkembang (dan cara fixnya)',
-      'Cara paling simpel untuk ' + t + ' yang jarang diajarkan orang',
-    ],
-    'Review Jujur': [
-      'Rating jujur ' + t + ' setelah aku coba sendiri — hasilnya mengejutkan',
-      'Aku coba ' + t + ' selama 30 hari — ini yang beneran terjadi',
-    ],
-  };
-
-  var formatScripts = {
-    'POV Storytelling': [
-      'Oke jadi ceritanya waktu itu aku lagi di posisi yang mungkin sama kayak kamu. Soal ' + t + ' — udah coba banyak cara tapi gak ada yang kena. Sampai akhirnya aku nemuin satu hal yang totally mengubah hasilnya.',
-    ],
-    'Tutorial / Tips': [
-      'Langsung ke inti ya. Ini tiga hal soal ' + t + ' yang aku wish tau dari awal. Bukan teori — ini yang beneran aku praktekin dan hasilnya nyata.',
-    ],
-    'Review Jujur': [
-      'Aku mau jujur banget soal ' + t + ', no filter. Setelah nyoba sendiri, ini yang beneran aku rasain. Bukan cuma yang bagusnya — tapi juga kekurangannya.',
-    ],
-  };
-
-  var platCaptions = {
-    'TikTok': '#' + (u.niche||'konten').replace(/\s/g,'').toLowerCase() + ' #fyp #viral #tips',
-    'Instagram Reels': 'Jujur nih soal ' + t + '...\n\nBanyak yang nanya, akhirnya aku ceritain di sini.\n\nSave dulu sebelum scroll! 📌',
-    'YouTube Shorts': 'Tips jujur ' + t + ' — no sponsor, murni pengalaman sendiri.\n\n#Shorts #' + (u.niche||'konten').replace(/\s/g,'').toLowerCase(),
-    'Shopee Video': t + ' yang beneran worth it! Cek link di toko ya 👇 Follow untuk rekomendasi lainnya!',
-  };
-
-  var hooks = formatHooks[format] || formatHooks['POV Storytelling'];
-  var scripts = formatScripts[format] || formatScripts['POV Storytelling'];
-  var caption = platCaptions[platform] || platCaptions['TikTok'];
-  var angles = ['personal_story','audience_pov','reveal','comparison','educational'];
-  var tags = [
-    '#' + (u.niche||'konten').replace(/\s/g,'').toLowerCase(),
-    '#fyp', '#indonesia', '#tips'
-  ];
-  var ctas = [
-    'Comment "aku juga" kalau relate! 👇',
-    'Save ini sebelum scroll — kamu butuh info ini 📌',
-    'Follow untuk tips lainnya ✨',
-  ];
-
-  return Array.from({ length: count }, function(_, i) {
-    var hook = hooks[i % hooks.length];
-    var script = scripts[i % scripts.length];
-    return {
-      id: Date.now() + '_' + i + '_' + Math.floor(Math.random() * 9999),
-      hook: hook, script: script, caption: caption,
-      hashtags: tags, cta: ctas[i % ctas.length],
-      angle: angles[i % angles.length],
-      platform: platform, format: format,
-      bfs: calcBFS(hook, caption, format),
-      createdAt: todayStr(), posted: false, postedAt: null,
-      views: 0, likes: 0, comments: 0, saves: 0, orders: 0,
-      calibrated: false, notes: ''
-    };
   });
 }
 
-function getFallbackFilm(format, style) {
-  return '🎬 PANDUAN SHOOTING — '+format+'\n\n'+
-    '📐 Setup:\n• Tripod atau posisi stabil\n• Angle setinggi mata\n• Background bersih\n\n'+
-    '💡 Pencahayaan:\n• Cahaya natural dari jendela (terbaik)\n• Ring light jika indoor\n• Hindari bayangan di wajah\n\n'+
-    '⚡ Opening 3 Detik:\n• Langsung ke hook — jangan ada intro!\n• Ekspresi yang match\n• Gerakan yang menarik mata\n\n'+
-    '🗣️ Penyampaian ('+style+'):\n• Bicara seperti ngobrol dengan teman\n• Pakai kata signature brand kamu\n• Natural, jangan baca teks\n\n'+
-    '⏱️ Timing:\n• 0-3 detik: HOOK\n• 3-45 detik: Isi utama\n• Terakhir 5 detik: CTA\n• Total ideal: 30-60 detik\n\n'+
-    '✂️ Editing:\n• Potong keheningan antar kata\n• Tambahkan subtitel highlight\n• Musik background sesuai mood konten';
-}
-
-// ─── RENDER CONTENT CARDS ────────────────────────────────
-function renderGenList(contents) {
-  var el = document.getElementById('genList');
-  if (!contents.length) { if(el) el.innerHTML=''; return; }
-  if(el) el.innerHTML = '<div class="stl mt8" style="margin-bottom:12px;">'+contents.length+' Konten Siap — Kalibrasi Setelah Baca</div>' +
-    contents.map(function(c,i) { return buildCGC(c,i); }).join('');
-}
-
-function buildCGC(c, idx) {
-  var cls = bfsCls(c.bfs||50);
-  var color = cls==='high'?'var(--a5)':cls==='mid'?'var(--a4)':'var(--a3)';
-  var aEmoji = {personal_story:'📖',audience_pov:'👥',reveal:'💡',comparison:'⚖️',educational:'📚',challenge:'🎯'}[c.angle]||'✦';
-  var cid = String(c.id);
-  var posted = c.posted;
-
-  return '<div class="cgc'+(posted?' posted':'')+'" id="cgc-'+cid+'">' +
-
-  '<div class="cgc-hd">' +
-    '<div>' +
-      '<p class="cgc-meta">Konten '+(idx+1)+' · '+esc(c.platform)+' · '+aEmoji+' '+(c.angle||'').replace(/_/g,' ')+'</p>' +
-      '<span class="badge '+(posted?'bg2':'bp')+'">'+(posted?'✅ Sudah Posting':'📝 Draft')+'</span>' +
-    '</div>' +
-    '<button class="btn btn-g btn-sm" onclick="copyAll(\''+cid+'\',this)">📋 Copy Semua</button>' +
-  '</div>' +
-
-  '<div style="padding:0 15px 10px;">' +
-    '<div class="bfs-wrap '+cls+'">' +
-      '<div class="bfs-num '+cls+'">'+(c.bfs||50)+'</div>' +
-      '<div class="bfs-info">' +
-        '<p class="bfs-lbl" style="color:'+color+';">Brand Fit Score</p>' +
-        '<p class="bfs-desc">'+bfsLbl(c.bfs||50)+'</p>' +
-      '</div>' +
-    '</div>' +
-  '</div>' +
-
-  '<div class="cgc-sec">' +
-    '<div class="cgc-sl">🎣 HOOK <button class="btn btn-g btn-sm" style="font-size:10px;padding:2px 7px;" onclick="copyTxt('+JSON.stringify(c.hook)+',this)">Copy</button></div>' +
-    '<p class="cgc-hook">'+esc(c.hook)+'</p>' +
-  '</div>' +
-
-  (c.script ? '<div class="cgc-sec" style="background:rgba(124,98,255,.04);">' +
-    '<div class="cgc-sl">🎬 SCRIPT <button class="btn btn-g btn-sm" style="font-size:10px;padding:2px 7px;" onclick="copyTxt('+JSON.stringify(c.script)+',this)">Copy</button></div>' +
-    '<p class="cgc-script">'+esc(c.script)+'</p>' +
-  '</div>' : '') +
-
-  '<div class="cgc-sec">' +
-    '<div class="cgc-sl">✍️ CAPTION <button class="btn btn-g btn-sm" style="font-size:10px;padding:2px 7px;" onclick="copyTxt('+JSON.stringify(c.caption)+',this)">Copy</button></div>' +
-    '<p class="cgc-txt">'+esc(c.caption)+'</p>' +
-  '</div>' +
-
-  '<div class="cgc-sec">' +
-    '<div class="cgc-sl">🏷️ HASHTAG <button class="btn btn-g btn-sm" style="font-size:10px;padding:2px 7px;" onclick="copyTxt('+JSON.stringify((c.hashtags||[]).join(' '))+',this)">Copy</button></div>' +
-    '<div class="tags-row">'+(c.hashtags||[]).map(function(h){return '<span class="ht" onclick="copyTxt(\''+h+'\')">'+esc(h)+'</span>';}).join('')+'</div>' +
-  '</div>' +
-
-  '<div class="cgc-sec">' +
-    '<div class="cgc-sl">📢 CTA <button class="btn btn-g btn-sm" style="font-size:10px;padding:2px 7px;" onclick="copyTxt('+JSON.stringify(c.cta)+',this)">Copy</button></div>' +
-    '<p class="cgc-txt" style="color:var(--a5);">'+esc(c.cta)+'</p>' +
-  '</div>' +
-
-  '<div class="cgc-ft">' +
-    (posted
-      ? '<button class="btn btn-gr btn-sm" style="flex:1;justify-content:center;" disabled>✅ Sudah Diposting</button>' +
-        '<button class="btn btn-pu btn-sm" onclick="openViewSheet(\''+cid+'\')">📊 Input Views</button>'
-      : '<button class="btn btn-gr btn-sm" style="flex:1;justify-content:center;" onclick="markPosted(\''+cid+'\')">✅ Sudah Posting</button>' +
-        '<button class="btn btn-g btn-sm" onclick="regenSingle(\''+cid+'\')">🔄</button>') +
-  '</div>' +
-
-  '<div style="padding:0 15px 13px;">' +
-    '<p style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:4px;">🧬 Hipotesis — dikonfirmasi oleh views aktual</p>' +
-    '<p style="font-size:10px;color:var(--muted);margin-bottom:6px;line-height:1.4;">Penilaianmu adalah hipotesis. Sistem menyesuaikan bobot berdasarkan views nyata setelah diposting.</p>' +
-    '<div class="cal-row" id="cal-'+cid+'">' +
-      '<div class="cal-btn" onclick="calibrate(\''+cid+'\',\'approve\',this)">👍 On-Brand</div>' +
-      '<div class="cal-btn" onclick="calibrate(\''+cid+'\',\'edited\',this)">✏️ Aku Edit</div>' +
-      '<div class="cal-btn" onclick="calibrate(\''+cid+'\',\'skip\',this)">❌ Off-Brand</div>' +
-    '</div>' +
-    (c.calibrated ? '<p style="font-size:10px;color:var(--a5);margin-top:5px;">✓ Hipotesis dicatat · Bobot final dari views</p>' : '<p style="font-size:10px;color:var(--muted);margin-top:5px;">Beri hipotesis — input views untuk konfirmasi</p>') +
-  '</div>' +
-
-  '</div>';
-}
-
-function copyAll(id, btn) {
-  var c = findC(id); if(!c) return;
-  var parts = ['HOOK:\n'+c.hook];
-  if(c.script) parts.push('SCRIPT (yang diucapkan):\n'+c.script);
-  parts.push('CAPTION:\n'+c.caption);
-  parts.push('HASHTAG:\n'+(c.hashtags||[]).join(' '));
-  parts.push('CTA:\n'+c.cta);
-  copyTxt(parts.join('\n\n---\n\n'), btn);
-  addCal(id, 'copied');
-}
-
-// ─── CALIBRATION ─────────────────────────────────────────
-function calibrate(id, signal, el) {
-  var c = findC(id); if(!c) return;
-
-  // PERBAIKAN 3: Kalibrasi sekarang adalah HIPOTESIS, bukan keputusan final.
-  // Sinyal subjektif user dicatat, tapi bobot sebenarnya ditentukan views aktual.
-  // Kalau user bilang "on-brand" tapi views <500, sinyal diperlemah.
-  // Kalau user bilang "off-brand" tapi views >5000, DNA tidak membuang pola itu.
-  var views = parseInt(c.views)||0;
-  var adjustedSignal = signal;
-  if (signal === 'approve' && views > 0 && views < 300) {
-    adjustedSignal = 'approve_weak'; // Approve tapi views rendah — catat sebagai lemah
-  }
-  if (signal === 'skip' && views > 3000) {
-    adjustedSignal = 'skip_conflict'; // Off-brand tapi views tinggi — konflik data, jangan hapus
-    toast('⚠️ Konten ini kamu anggap off-brand tapi views-nya tinggi. DNA mencatat konflik ini — pertimbangkan apakah ini sinyal baru.', 'inf', 5000);
-  }
-
-  addCal(id, adjustedSignal, c);
-  var row = document.getElementById('cal-'+id);
-  if (row) {
-    row.querySelectorAll('.cal-btn').forEach(function(b) { b.style.opacity='.35'; b.onclick=null; });
-    if (el) {
-      el.style.opacity = '1';
-      el.style.fontWeight = '700';
-      el.style.borderColor = signal==='approve'?'var(--a5)':signal==='skip'?'var(--a3)':'var(--a2)';
-      el.style.color = signal==='approve'?'var(--a5)':signal==='skip'?'var(--a3)':'var(--a2)';
+async function boot(){
+  bind();
+  if(S.onboarded){
+    if(S.mode==='auth' && supabase){
+      const ses=await supabase.auth.getSession();
+      if(ses && ses.data && ses.data.session){ renderApp(); show('appView'); openTab('gen'); return; }
     }
-  }
-
-  var confNote = (adjustedSignal === 'approve_weak') ? ' (views rendah — butuh konfirmasi)' :
-                 (adjustedSignal === 'skip_conflict') ? ' (konflik dengan views tinggi!)' : '';
-  var msgs = {approve:'✅ Hipotesis on-brand dicatat', edited:'✏️ Pola diperbarui', skip:'❌ Hipotesis off-brand dicatat'};
-  toast((msgs[signal]||'✦ Dicatat') + confNote + ' 🧬', 'ok');
-  c.calibrated = true;
-  saveS();
-  renderHome();
-}
-
-function addCal(id, signal, content) {
-  var c = content || findC(id); if(!c) return;
-  S.dna.calibrations.push({id:id, signal:signal, hook:c.hook, angle:c.angle, format:c.format, bfs:c.bfs, views:parseInt(c.views)||0, date:todayStr(), ts:Date.now()});
-
-  // 'approve_weak' dicatat tapi tidak langsung masuk best_hooks
-  // 'skip_conflict' tidak masuk weak_patterns karena views-nya tinggi
-  if (signal === 'approve') {
-    if ((S.dna.best_hooks||[]).indexOf(c.hook) < 0) S.dna.best_hooks.push(c.hook);
-    if (c.angle && (S.dna.best_angles||[]).indexOf(c.angle) < 0) S.dna.best_angles.push(c.angle);
-    if (c.format && (S.dna.best_formats||[]).indexOf(c.format) < 0) S.dna.best_formats.push(c.format);
-  }
-  if (signal === 'approve_weak') {
-    // Catat di pending hooks — harus dikonfirmasi dengan views nyata dulu
-    S.dna.pending_hooks = S.dna.pending_hooks || [];
-    if (S.dna.pending_hooks.indexOf(c.hook) < 0) S.dna.pending_hooks.push(c.hook);
-  }
-  if (signal === 'skip') {
-    var pat = (c.hook||'').split(' ').slice(0,3).join(' ');
-    if ((S.dna.weak_patterns||[]).indexOf(pat) < 0) S.dna.weak_patterns.push(pat);
-  }
-  // skip_conflict: simpan sebagai data konflik, bukan weak pattern
-  if (signal === 'skip_conflict') {
-    S.dna.conflict_signals = S.dna.conflict_signals || [];
-    S.dna.conflict_signals.push({hook:c.hook, views:parseInt(c.views)||0, date:todayStr()});
-  }
-  // Promosikan pending_hook ke best_hook kalau views akhirnya tinggi
-  if (parseInt(c.views) > 1500 && (S.dna.pending_hooks||[]).indexOf(c.hook) >= 0) {
-    S.dna.best_hooks = S.dna.best_hooks || [];
-    if (S.dna.best_hooks.indexOf(c.hook) < 0) S.dna.best_hooks.push(c.hook);
-    S.dna.pending_hooks = S.dna.pending_hooks.filter(function(h){return h!==c.hook;});
-  }
-  S.dna.best_hooks = (S.dna.best_hooks||[]).slice(-10);
-  S.dna.best_angles = (S.dna.best_angles||[]).slice(-8);
-  S.dna.best_formats = (S.dna.best_formats||[]).slice(-6);
-  S.dna.weak_patterns = (S.dna.weak_patterns||[]).slice(-8);
-  S.dna.health = calcDNAHealth();
-  saveS();
-}
-
-function markPosted(id) {
-  var c = findC(id); if(!c) return;
-  var prevLv = getLevel(calcXP());
-  c.posted = true; c.postedAt = todayStr();
-  if (S.posted_days.indexOf(todayStr()) < 0) S.posted_days.push(todayStr());
-  saveS();
-  var newLv = getLevel(calcXP());
-  var el = document.getElementById('cgc-'+id);
-  var idx = S.contents.findIndex(function(x){return String(x.id)===String(id);});
-  if (el) el.outerHTML = buildCGC(c, idx);
-  if (newLv.n > prevLv.n) {
-    setTimeout(function(){toast('🎉 LEVEL UP! Kamu naik ke '+newLv.name+'! 🧬','ok',5000);}, 300);
+    show('authView');
   } else {
-    toast('Ditandai posting! +50 XP 🔥', 'ok');
+    show('welcomeView');
   }
-  renderHome();
-  addCal(id, 'posted', c);
-}
-
-async function regenSingle(id) {
-  var c = findC(id); if(!c) return;
-  var el = document.getElementById('cgc-'+id);
-  if(el) el.style.opacity = '.5';
-  toast('🔄 Regenerate...', 'inf');
-  var d = S.dna, u = S.user;
-  var prompt = 'Buat 1 konten '+c.format+' pengganti untuk '+u.brand+' di '+c.platform+'.\n' +
-    'Sebelumnya ditolak. Buat versi yang BERBEDA total — angle baru, hook baru, lebih segar.\n' +
-    'Brand DNA: positioning "'+d.positioning+'", tone: '+(d.tone_keywords||[]).join(', ')+', signature: '+(d.signature_phrases||[]).join(', ')+'.\n' +
-    'TIDAK boleh bahas: '+u.forbidden+'.\n\n' +
-    'Format PERSIS:\nKONTEN_START\nHOOK: [hook baru]\nSCRIPT: [script]\nCAPTION: [caption]\nHASHTAG: [10 hashtag]\nCTA: [cta]\nANGLE: [angle]\nKONTEN_END';
-  try {
-    var res = await aiCall(prompt);
-    var parsed = parseContents(res, c.platform, c.format);
-    if (parsed.length) {
-      var idx = S.contents.findIndex(function(x){return String(x.id)===String(id);});
-      var newC = Object.assign({}, parsed[0], {id: c.id});
-      S.contents[idx] = newC;
-      saveS();
-      if(el) el.outerHTML = buildCGC(newC, idx);
-      toast('Konten berhasil di-regenerate 🔄', 'ok');
-    }
-  } catch(e) {
-    if(el) el.style.opacity = '1';
-    toast('Gagal regenerate. Cek koneksi.', 'err');
-  }
-}
-
-if (!String.prototype.padStart) {
-  String.prototype.padStart = function(len, fill) {
-    var s = String(this);
-    fill = fill || ' ';
-    while (s.length < len) s = fill + s;
-    return s;
-  };
-}
-
-// ─── MINI VIEWS CHART ────────────────────────────────────
-function renderMiniChart() {
-  var el = document.getElementById('a_mini_chart');
-  if (!el) return;
-  var posted = S.contents.filter(function(c) { return c.posted; });
-  if (!posted.length) { el.innerHTML = ''; return; }
-  var sorted = posted.slice().sort(function(a,b) { return (a.postedAt||'') < (b.postedAt||'') ? -1 : 1; }).slice(-7);
-  var max = Math.max.apply(null, sorted.map(function(c){return parseInt(c.views)||0;})) || 1;
-  el.style.cssText = 'display:flex;align-items:flex-end;gap:4px;height:48px;margin-bottom:12px;padding:2px 0;';
-  el.innerHTML = sorted.map(function(c) {
-    var v = parseInt(c.views)||0;
-    var h = Math.max(8, Math.round(v/max*100));
-    var clr = v > max*0.7 ? 'var(--accent)' : 'var(--a2)';
-    return '<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;height:100%;justify-content:flex-end;">' +
-      '<div style="width:100%;height:' + h + '%;background:' + clr + ';border-radius:3px 3px 0 0;min-height:4px;"></div>' +
-      '<span style="font-size:8px;color:var(--muted);">' + (v>0?fmtNum(v):'—') + '</span></div>';
-  }).join('');
-}
-
-
-var viewingId = null;
-
-function renderPostedList() {
-  var posted = S.contents.filter(function(c){return c.posted;});
-  var totalV = posted.reduce(function(a,c){return a+(parseInt(c.views)||0);},0);
-  var avgER = calcAvgER(posted);
-  var pc=document.getElementById('a_pc'); if(pc) pc.textContent=posted.length+' diposting';
-  var vb=document.getElementById('a_vb'); if(vb) vb.textContent=fmtNum(totalV)+' views';
-  var erb=document.getElementById('a_erb'); if(erb) erb.textContent=avgER.toFixed(1)+'% ER';
-  renderMiniChart();
-  var el = document.getElementById('postedList');
-  if (!el) return;
-  if (!posted.length) {
-    el.innerHTML = '<div class="empty"><div class="empty-i">📝</div><p class="empty-t">Belum ada konten diposting</p><p class="empty-d">Generate di ✦, lalu klik "Sudah Posting"</p></div>';
-    return;
-  }
-  var sorted = posted.slice().sort(function(a,b){return (parseInt(b.views)||0)-(parseInt(a.views)||0);});
-  el.innerHTML = sorted.map(function(c) {
-    var v = parseInt(c.views)||0;
-    var er = v?(((parseInt(c.likes||0)+parseInt(c.comments||0)+parseInt(c.saves||0))/v)*100).toFixed(1):0;
-    var cls = bfsCls(c.bfs||50);
-    return '<div class="pc '+(v>0?'has-v':'no-v')+'">' +
-      '<p class="pc-hook">'+esc(c.hook)+'</p>' +
-      '<div class="pc-meta"><span class="badge bp">'+esc(c.platform)+'</span><span class="badge bo">'+esc(c.format)+'</span>' +
-      '<span class="badge '+(cls==='high'?'bg2':cls==='mid'?'bo':'br')+'">BFS '+(c.bfs||50)+'</span>' +
-      (v>0?'<span class="badge bg2">'+fmtNum(v)+' views · '+er+'% ER</span>':'<span class="badge br">Belum ada views</span>')+'</div>' +
-      '<div class="vi-row"><input class="vi" type="number" placeholder="Masukkan views..." value="'+(v||'')+'" id="qi-'+c.id+'"/>' +
-      '<button class="btn btn-pu btn-sm" onclick="quickSave(\''+c.id+'\')">Simpan</button>' +
-      '<button class="btn btn-g btn-sm" onclick="openViewSheet(\''+c.id+'\')">+ Detail</button></div></div>';
-  }).join('');
-}
-
-function calcAvgER(posts) {
-  var valid = posts.filter(function(c){return parseInt(c.views)>0;});
-  if(!valid.length) return 0;
-  return valid.reduce(function(a,c){
-    var v=parseInt(c.views);
-    return a+((parseInt(c.likes||0)+parseInt(c.comments||0)+parseInt(c.saves||0))/v*100);
-  },0)/valid.length;
-}
-
-function quickSave(id) {
-  var c = findC(id);
-  var inp = document.getElementById('qi-'+id);
-  if(!c||!inp) return;
-  c.views = parseInt(inp.value)||0;
-  if (c.views > 2000 && (S.dna.best_hooks||[]).indexOf(c.hook) < 0) {
-    S.dna.best_hooks.push(c.hook);
-    if(c.angle) S.dna.best_angles.push(c.angle);
-    S.dna.health = calcDNAHealth();
-    toast('Views tinggi! Hook dipelajari DNA 🧬', 'ok', 4000);
-  } else {
-    toast('Views disimpan 📊', 'ok');
-  }
-  saveS();
-  renderPostedList();
-  renderHome();
-}
-
-function openViewSheet(id) {
-  viewingId = id;
-  var c = findC(id); if(!c) return;
-  var vh=document.getElementById('vs_hook'); if(vh) vh.textContent=(c.hook||'').slice(0,70)+(c.hook&&c.hook.length>70?'…':'');
-  var vv=document.getElementById('vs_views'); if(vv) vv.value=c.views||'';
-  var vl=document.getElementById('vs_likes'); if(vl) vl.value=c.likes||'';
-  var vcm=document.getElementById('vs_comments'); if(vcm) vcm.value=c.comments||'';
-  var vs=document.getElementById('vs_saves'); if(vs) vs.value=c.saves||'';
-  var vo=document.getElementById('vs_orders'); if(vo) vo.value=c.orders||'';
-  var vn=document.getElementById('vs_notes'); if(vn) vn.value=c.notes||'';
-  openOv('viewSh');
-}
-
-function saveViews() {
-  var c = findC(viewingId); if(!c) return;
-  var prevViews = parseInt(c.views)||0;
-  c.views = parseInt((document.getElementById('vs_views')||{}).value)||0;
-  c.likes = parseInt((document.getElementById('vs_likes')||{}).value)||0;
-  c.comments = parseInt((document.getElementById('vs_comments')||{}).value)||0;
-  c.saves = parseInt((document.getElementById('vs_saves')||{}).value)||0;
-  c.orders = parseInt((document.getElementById('vs_orders')||{}).value)||0;
-  c.notes = ((document.getElementById('vs_notes')||{}).value)||'';
-  var rating = getSelTags('vs_hook_rate')[0]||'';
-  if (c.views > 1000 && rating.includes('Sangat')) addCal(viewingId, 'approve', c);
-  if (rating.includes('Kurang')) addCal(viewingId, 'skip', c);
-
-  // PERBAIKAN 4: Validasi BFS — apakah prediksi terbukti?
-  // Ini adalah mekanisme akuntabilitas BFS terhadap realita.
-  if (c.views > 0 && c.bfs) {
-    var bfsWasBullish = c.bfs >= 75;
-    var bfsWasBearish = c.bfs < 55;
-    var actuallyPerformed = c.views >= 2000;
-    var actuallyFlopped = c.views < 300;
-    S.dna.bfs_validations = S.dna.bfs_validations || [];
-    S.dna.bfs_validations.push({
-      bfs: c.bfs,
-      views: c.views,
-      correct: (bfsWasBullish && actuallyPerformed) || (bfsWasBearish && actuallyFlopped),
-      date: todayStr()
-    });
-    // Hitung akurasi BFS dari 10 validasi terakhir
-    var last10 = S.dna.bfs_validations.slice(-10);
-    var accuracy = last10.filter(function(v){return v.correct;}).length;
-    S.dna.bfs_accuracy = Math.round((accuracy/last10.length)*100);
-    // Kalau BFS sering salah: tampilkan notifikasi
-    if (last10.length >= 5 && S.dna.bfs_accuracy < 50) {
-      toast('📊 BFS hanya akurat '+S.dna.bfs_accuracy+'% dari 10 prediksi terakhir. Pertimbangkan regenerate DNA.', 'inf', 6000);
-    }
-  }
-
-  if (c.views > 2000 && (S.dna.best_hooks||[]).indexOf(c.hook) < 0) {
-    S.dna.best_hooks.push(c.hook);
-    toast('🧬 Views tinggi! Hook dipelajari Brand DNA', 'ok', 4000);
-  }
-  // Promosikan pending hook kalau views sudah cukup
-  if (c.views > 1500 && (S.dna.pending_hooks||[]).indexOf(c.hook) >= 0) {
-    S.dna.best_hooks = S.dna.best_hooks || [];
-    if (S.dna.best_hooks.indexOf(c.hook) < 0) {
-      S.dna.best_hooks.push(c.hook);
-      toast('🧬 Hook yang awalnya approve_weak sekarang terkonfirmasi oleh views! Naik ke best_hooks.', 'ok', 4000);
-    }
-    S.dna.pending_hooks = (S.dna.pending_hooks||[]).filter(function(h){return h!==c.hook;});
-  }
-  saveS();
-  closeOv('viewSh');
-  renderPostedList();
-  renderHome();
-  toast('Data tersimpan! BFS divalidasi 📊', 'ok');
-}
-
-// ─── TABS ────────────────────────────────────────────────
-function switchTab(tab, idx) {
-  document.querySelectorAll('.tabp').forEach(function(t){t.classList.remove('active');});
-  document.querySelectorAll('#atabs .tab').forEach(function(t){t.classList.remove('active');});
-  var tp=document.getElementById('tab-'+tab); if(tp) tp.classList.add('active');
-  var tabs=document.querySelectorAll('#atabs .tab'); if(tabs[idx]) tabs[idx].classList.add('active');
-  if(tab==='posted') renderPostedList();
-  if(tab==='history') renderHistList();
-}
-
-function renderHistList() {
-  var el=document.getElementById('histList'); if(!el) return;
-  var ct=document.getElementById('hist_ct'); if(ct) ct.textContent=S.contents.length+' konten';
-  var all=S.contents.slice().reverse();
-  if(!all.length){ el.innerHTML='<div class="empty"><div class="empty-i">📚</div><p class="empty-t">Belum ada konten</p><p class="empty-d">Generate konten pertama di tab ✦</p></div>'; return; }
-  el.innerHTML=all.map(function(c){
-    var cls=bfsCls(c.bfs||50);
-    return '<div style="background:var(--s1);border:1px solid var(--border);border-left:3px solid '+(c.posted?'var(--a5)':'var(--border)')+';border-radius:12px;padding:13px;margin-bottom:9px;">' +
-      '<div style="display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap;">' +
-      '<span class="badge '+(c.posted?'bg2':'bp')+'">'+(c.posted?'✅ Posted':'📝 Draft')+'</span>' +
-      '<span class="badge '+(cls==='high'?'bg2':cls==='mid'?'bo':'br')+'">BFS '+(c.bfs||50)+'</span>' +
-      '<span class="badge" style="background:var(--s3);color:var(--muted);">'+esc(c.platform)+'</span>' +
-      '<span style="font-size:10px;color:var(--muted);margin-left:auto;">'+esc(c.createdAt)+'</span></div>' +
-      '<p style="font-family:\'Syne\',sans-serif;font-size:13px;font-weight:700;margin-bottom:8px;line-height:1.35;">'+esc(c.hook)+'</p>' +
-      '<div style="display:flex;gap:7px;flex-wrap:wrap;">' +
-      '<button class="btn btn-g btn-sm" onclick="copyTxt('+JSON.stringify('HOOK:\n'+c.hook+'\n\nSCRIPT:\n'+(c.script||'')+'\n\nCAPTION:\n'+c.caption+'\n\nHASHTAG:\n'+(c.hashtags||[]).join(' ')+'\n\nCTA:\n'+c.cta)+',this)">📋 Copy</button>' +
-      (!c.posted?'<button class="btn btn-gr btn-sm" onclick="markPosted(\''+c.id+'\')">✅ Tandai Posted</button>':'') +
-      '<button class="btn btn-rd btn-sm" onclick="delContent(\''+c.id+'\')">🗑</button></div></div>';
-  }).join('');
-}
-
-function delContent(id) {
-  S.contents = S.contents.filter(function(c){return String(c.id)!==String(id);});
-  saveS(); renderHistList(); renderHome(); toast('Konten dihapus', 'inf');
 }
 function clearDrafts() {
   if(!confirm('Hapus semua draft (belum posted)?')) return;
@@ -2482,10 +1377,7 @@ function _bindAuthButtons() {
 window.addEventListener('error', function(e){ console.error('[GlobalError]', e.message, e.filename, e.lineno); });
 window.addEventListener('unhandledrejection', function(e){ console.error('[UnhandledRejection]', e.reason); });
 
-document.addEventListener('DOMContentLoaded', function() {
-  _bindAuthButtons();
-  checkUser();
-});
+boot();
 </script>
 </body>
 </html>
