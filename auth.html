@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Auth - Creator Specialist OS</title>
+  <style>
+    body{font-family:'Times New Roman',Times,serif;background:#0a0a0f;color:#f0f0f8;display:flex;justify-content:center;padding:32px}
+    .wrap{width:100%;max-width:460px;background:#12121a;border:1px solid rgba(255,255,255,.08);border-radius:14px;padding:18px}
+    input{width:100%;margin-bottom:10px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:#1a1a26;color:#f0f0f8}
+    button{padding:10px 14px;border:none;border-radius:8px;cursor:pointer}
+    .btn{background:#c8ff3e;color:#000;width:100%;margin-top:6px}
+    .muted{color:#a0a0b8;font-size:12px}
+    h2{font-family:'Arial Black',Arial,sans-serif}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h2>Register</h2>
+    <input id="reg_name" placeholder="Nama lengkap" />
+    <input id="reg_wa" placeholder="No WhatsApp" />
+    <input id="reg_email" placeholder="Email" />
+    <input id="reg_pass" type="password" placeholder="Password" />
+    <button class="btn" id="btnRegister">Daftar</button>
+
+    <hr style="margin:18px 0;border-color:rgba(255,255,255,.1)">
+
+    <h2>Login</h2>
+    <input id="log_email" placeholder="Email" />
+    <input id="log_pass" type="password" placeholder="Password" />
+    <button class="btn" id="btnLogin">Masuk</button>
+
+    <p class="muted" id="authMsg" style="margin-top:12px"></p>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabaseclient.js"></script>
+  <script src="js/auth-flow.js"></script>
+  <script>
+    const msg = document.getElementById('authMsg');
+
+    document.getElementById('btnRegister').onclick = async () => {
+      try {
+        await window.AuthFlow.register({
+          full_name: document.getElementById('reg_name').value,
+          whatsapp_no: document.getElementById('reg_wa').value,
+          email: document.getElementById('reg_email').value,
+          password: document.getElementById('reg_pass').value
+        });
+        msg.textContent = 'Registrasi berhasil. Cek email untuk verifikasi (jika diaktifkan).';
+      } catch (e) {
+        msg.textContent = `Register gagal: ${e.message}`;
+      }
+    };
+
+    document.getElementById('btnLogin').onclick = async () => {
+      try {
+        await window.AuthFlow.login({
+          email: document.getElementById('log_email').value,
+          password: document.getElementById('log_pass').value
+        });
+        msg.textContent = 'Login berhasil. Redirect ke app...';
+        setTimeout(() => { window.location.href = 'index.html'; }, 700);
+      } catch (e) {
+        msg.textContent = `Login gagal: ${e.message}`;
+      }
+    };
+  </script>
+</body>
+</html>

@@ -1,0 +1,157 @@
+{
+  "meta": {
+    "title": "Creator Specialist OS - UI/UX, Security, and Deployment Review",
+    "version": "1.0.0",
+    "date": "2026-04-28",
+    "target": ["Vercel deploy", "Supabase Auth+DB", "Edge Function readiness"]
+  },
+  "ui_ux_review": {
+    "problem_summary": [
+      "Tampilan mobile terasa padat (crowded), elemen terlalu besar, dan hierarki visual kurang tenang.",
+      "Font sebelumnya cenderung display-style sehingga readability di layar kecil menurun.",
+      "Spacing CTA pada top area menekan area konten utama."
+    ],
+    "merge_hypothesis": {
+      "is_wrong_merge_likely": true,
+      "reason": "Ada indikasi layering commit yang menambah style baru tanpa merapikan style lama sehingga hasil akhir tidak konsisten antar breakpoint."
+    },
+    "changes_applied": [
+      "Global font disederhanakan ke Times New Roman (body) dan Arial Black (heading accent).",
+      "Dependensi Google Font dihapus agar rendering lebih stabil dan konsisten lintas device.",
+      "Auth dan smoke test page disamakan font strategy-nya untuk UX parity."
+    ],
+    "recommended_next_ui_tasks": [
+      "Audit vertical rhythm: gunakan skala spacing 8px konsisten.",
+      "Turunkan ukuran H1 mobile dan batasi line-length 18-24 karakter.",
+      "Pindahkan secondary CTA agar tidak menabrak fokus dashboard.",
+      "Tambahkan skeleton/loading state untuk operasi DB agar UX tidak terasa laggy."
+    ]
+  },
+  "bugs_and_exploit_review": {
+    "critical": [
+      {
+        "id": "SEC-VERCEL-ROUTE-001",
+        "issue": "Rewrite semua route ke index.html berpotensi memutus akses file statis seperti auth.html/smoke-test.html.",
+        "impact": "Flow auth terputus setelah deploy.",
+        "fix": "Rewrite diubah hanya untuk path tanpa ekstensi file."
+      }
+    ],
+    "high": [
+      {
+        "id": "SEC-CLIENT-CONFIG-002",
+        "issue": "Risiko salah konfigurasi SUPABASE_URL/ANON_KEY menyebabkan client null dan flow gagal diam-diam.",
+        "impact": "Auth dan CRUD tidak berjalan, user kebingungan.",
+        "fix": "Tambahkan layered config + warning eksplisit + smoke test page."
+      },
+      {
+        "id": "APP-RLS-003",
+        "issue": "Jika RLS policy tidak sinkron dengan schema terbaru, register/insert akan gagal walau UI benar.",
+        "impact": "Data gagal tersimpan dan menyebabkan false-negative terhadap kualitas app.",
+        "fix": "Wajib jalankan checklist SQL validasi dan test multi-user isolation."
+      }
+    ],
+    "medium": [
+      {
+        "id": "APP-UX-004",
+        "issue": "Error handling masih berbasis alert string.",
+        "impact": "DX/UX buruk dan sulit debugging production.",
+        "fix": "Gunakan error toast + telemetry event + error code mapping."
+      },
+      {
+        "id": "APP-DATA-005",
+        "issue": "Validasi input (email/WA/brand_name) belum ketat di sisi UI.",
+        "impact": "Kualitas data menurun, potensi edge-case insert fail.",
+        "fix": "Tambahkan schema validation (mis. Zod) sebelum request DB."
+      }
+    ]
+  },
+  "deploy_readiness_for_vercel": {
+    "status": "partial-ready",
+    "preconditions": [
+      "Vercel env vars untuk Supabase harus terpasang (jika tidak memakai localStorage/runtime injection).",
+      "Supabase schema + RLS harus sudah dieksekusi.",
+      "Auth redirect URL harus termasuk domain Vercel."
+    ],
+    "checks": [
+      "Open /auth.html -> register/login success",
+      "Open /smoke-test.html -> all green",
+      "Open nested SPA route -> tidak 404"
+    ]
+  },
+  "workflow": {
+    "phase_1_baseline": [
+      "Deploy static app ke Vercel",
+      "Konfirmasi route rewrite berfungsi tanpa merusak file statis",
+      "Konfirmasi auth flow end-to-end"
+    ],
+    "phase_2_data_integrity": [
+      "Jalankan smoke-test",
+      "Verifikasi SQL checklist (profiles, brands, content_ideas)",
+      "Uji multi-user isolation (RLS)"
+    ],
+    "phase_3_api_edge_ready": [
+      "Deploy edge function dna/content",
+      "Test JWT Authorization via curl",
+      "Tambahkan structured logging di edge"
+    ],
+    "phase_4_ai_engine": [
+      "Buat edge function ai-generate",
+      "Wajib input Brand/Personal DNA + objective",
+      "Simpan output ke content_ideas + ai_generation_logs",
+      "Tambah safety layer (rate limit, prompt injection guard, timeout)"
+    ]
+  },
+  "implementation_plan": [
+    {
+      "week": 1,
+      "focus": "Stabilkan auth+db",
+      "deliverables": [
+        "Auth/register/login stabil di production",
+        "DNA upsert + content create/read stabil",
+        "RLS validation report"
+      ]
+    },
+    {
+      "week": 2,
+      "focus": "Hardening + observability",
+      "deliverables": [
+        "UI error boundary + toast",
+        "Request tracing sederhana",
+        "Input validation layer"
+      ]
+    },
+    {
+      "week": 3,
+      "focus": "AI edge MVP",
+      "deliverables": [
+        "Endpoint /ai/generate",
+        "DNA alignment scoring",
+        "Fallback jika model timeout"
+      ]
+    },
+    {
+      "week": 4,
+      "focus": "Optimization",
+      "deliverables": [
+        "Feedback loop ke rekomendasi",
+        "Level progression tuning",
+        "Performance dashboard real data"
+      ]
+    }
+  ],
+  "success_criteria": {
+    "functional": [
+      "Auth success rate > 98%",
+      "DNA save success rate > 99%",
+      "Content CRUD success rate > 99%"
+    ],
+    "security": [
+      "RLS bypass incidents = 0",
+      "Unauthorized edge access blocked = 100%"
+    ],
+    "ux": [
+      "First successful content save < 3 menit",
+      "User error rate onboarding turun >= 30%"
+    ]
+  }
+}

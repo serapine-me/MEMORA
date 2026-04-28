@@ -4,8 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Creator Specialist OS</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
 <style>
 :root {
   --bg: #0a0a0f;
@@ -23,7 +21,7 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Times New Roman', Times, serif;
   background: var(--bg);
   color: var(--text);
   min-height: 100vh;
@@ -58,7 +56,7 @@ body {
 }
 
 .logo-mark {
-  font-family: 'Syne', sans-serif;
+  font-family: 'Arial Black', Arial, sans-serif;
   font-size: 11px;
   font-weight: 800;
   letter-spacing: 0.2em;
@@ -69,7 +67,7 @@ body {
 }
 
 .logo-name {
-  font-family: 'Syne', sans-serif;
+  font-family: 'Arial Black', Arial, sans-serif;
   font-size: 17px;
   font-weight: 700;
   color: var(--text);
@@ -133,7 +131,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-family: 'Syne', sans-serif;
+  font-family: 'Arial Black', Arial, sans-serif;
   font-size: 13px;
   font-weight: 700;
   color: #000;
@@ -167,7 +165,7 @@ body {
 }
 
 .page-title {
-  font-family: 'Syne', sans-serif;
+  font-family: 'Arial Black', Arial, sans-serif;
   font-size: 18px;
   font-weight: 700;
   color: var(--text);
@@ -186,7 +184,7 @@ body {
   cursor: pointer;
   border: none;
   transition: all 0.15s;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Times New Roman', Times, serif;
 }
 
 .btn-primary {
@@ -222,7 +220,7 @@ body {
 .card:hover { border-color: rgba(255,255,255,0.1); }
 
 .card-title {
-  font-family: 'Syne', sans-serif;
+  font-family: 'Arial Black', Arial, sans-serif;
   font-size: 14px;
   font-weight: 700;
   color: var(--text);
@@ -245,7 +243,7 @@ body {
 .stat-label { font-size: 12px; color: var(--muted); font-weight: 500; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.08em; }
 
 .stat-value {
-  font-family: 'Syne', sans-serif;
+  font-family: 'Arial Black', Arial, sans-serif;
   font-size: 28px;
   font-weight: 800;
   color: var(--text);
@@ -261,6 +259,40 @@ body {
 }
 .stat-change.up { color: var(--accent); }
 .stat-change.down { color: var(--accent3); }
+
+/* DASHBOARD COMPACT */
+.dashboard-wrap { display: flex; flex-direction: column; gap: 16px; }
+.dashboard-header h2 { font-size: 20px; line-height: 1.25; }
+.dashboard-stats { grid-template-columns: repeat(4, minmax(0,1fr)); gap: 12px; margin-bottom: 0 !important; }
+.dashboard-stats .stat-card { padding: 14px 16px; border-radius: 10px; }
+.dashboard-stats .stat-label { font-size: 10px; margin-bottom: 6px; }
+.dashboard-stats .stat-value { font-size: 22px; margin-bottom: 4px; }
+.dashboard-stats .stat-change { font-size: 11px; }
+.compact-card { padding: 16px; border-radius: 10px; }
+.compact-card .card-subtitle { margin-bottom: 10px; font-size: 12px; }
+.compact-row { margin-bottom: 0 !important; gap: 12px; }
+.mini-insights { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; }
+.mini-insight {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+}
+.mini-insight p:first-child { font-size: 10px; color: var(--muted); margin-bottom: 3px; }
+.mini-insight p:last-child { font-size: 12px; font-weight: 600; color: var(--text); }
+.reco-list { display: grid; gap: 8px; }
+.reco-item {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.reco-item span { font-size: 16px; line-height: 1; margin-top: 2px; }
+.reco-item p { font-size: 12px; line-height: 1.45; color: var(--muted); }
+.reco-item b { color: var(--text); font-weight: 600; }
 
 /* BADGE */
 .badge {
@@ -314,7 +346,7 @@ body {
   padding: 10px 14px;
   color: var(--text);
   font-size: 14px;
-  font-family: 'DM Sans', sans-serif;
+  font-family: 'Times New Roman', Times, serif;
   outline: none;
   transition: border-color 0.15s;
 }
@@ -344,7 +376,7 @@ body {
 .step-dot.current { background: var(--accent2); border-color: var(--accent2); width: 24px; border-radius: 4px; }
 
 .step-heading {
-  font-family: 'Syne', sans-serif;
+  font-family: 'Arial Black', Arial, sans-serif;
   font-size: 24px;
   font-weight: 800;
   margin-bottom: 6px;
@@ -364,7 +396,7 @@ body {
 .content-card:hover { border-color: var(--accent2); transform: translateY(-1px); }
 
 .content-hook {
-  font-family: 'Syne', sans-serif;
+  font-family: 'Arial Black', Arial, sans-serif;
   font-size: 15px;
   font-weight: 700;
   color: var(--text);
@@ -455,7 +487,7 @@ body {
 }
 
 .modal-title {
-  font-family: 'Syne', sans-serif;
+  font-family: 'Arial Black', Arial, sans-serif;
   font-size: 20px;
   font-weight: 800;
   margin-bottom: 4px;
@@ -484,7 +516,7 @@ body {
   letter-spacing: 0.1em;
   padding: 2px 8px;
   border-radius: 20px;
-  font-family: 'Syne', sans-serif;
+  font-family: 'Arial Black', Arial, sans-serif;
 }
 
 /* CHART (CSS bars) */
@@ -568,7 +600,7 @@ body {
   margin-bottom: 8px;
 }
 .comp-rank {
-  font-family: 'Syne', sans-serif;
+  font-family: 'Arial Black', Arial, sans-serif;
   font-size: 18px;
   font-weight: 800;
   color: var(--muted);
@@ -578,7 +610,7 @@ body {
 .comp-name { font-size: 14px; font-weight: 600; color: var(--text); }
 .comp-stat { font-size: 12px; color: var(--muted); }
 .comp-score {
-  font-family: 'Syne', sans-serif;
+  font-family: 'Arial Black', Arial, sans-serif;
   font-size: 14px;
   font-weight: 700;
   color: var(--accent);
@@ -614,7 +646,7 @@ body {
 }
 
 .welcome-title {
-  font-family: 'Syne', sans-serif;
+  font-family: 'Arial Black', Arial, sans-serif;
   font-size: clamp(36px, 5vw, 64px);
   font-weight: 800;
   line-height: 1.05;
@@ -667,11 +699,14 @@ body {
 @media (max-width: 900px) {
   .grid-4 { grid-template-columns: 1fr 1fr; }
   .grid-3 { grid-template-columns: 1fr; }
+  .dashboard-stats { grid-template-columns: 1fr 1fr; }
+  .mini-insights { grid-template-columns: 1fr; }
 }
 @media (max-width: 700px) {
   .sidebar { display: none; }
   .main { margin-left: 0; }
   .grid-2, .grid-4 { grid-template-columns: 1fr; }
+  .dashboard-stats { grid-template-columns: 1fr; }
   .page { padding: 20px 16px; }
 }
 </style>
@@ -686,6 +721,7 @@ body {
   <div class="welcome-actions">
     <button class="btn btn-primary btn-large" onclick="startOnboarding()">🚀 Mulai Gratis</button>
     <button class="btn btn-ghost btn-large" onclick="enterApp()">Masuk ke Dashboard →</button>
+    <button class="btn btn-ghost btn-large" onclick="window.location.href='auth.html'">🔐 Register / Login</button>
   </div>
 </div>
 
@@ -892,13 +928,14 @@ body {
 
     <!-- PAGE: DASHBOARD -->
     <div class="page active" id="page-dashboard">
-      <div style="margin-bottom:24px">
+      <div class="dashboard-wrap">
+      <div class="dashboard-header">
         <p style="font-size:13px;color:var(--muted);margin-bottom:4px">Selamat datang kembali 👋</p>
-        <h2 style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800" id="dashGreeting">Creator, siap bikin konten hari ini?</h2>
+        <h2 style="font-family:'Arial Black', Arial, sans-serif;font-size:22px;font-weight:800" id="dashGreeting">Creator, siap bikin konten hari ini?</h2>
       </div>
 
       <!-- STATS ROW -->
-      <div class="grid-4" style="margin-bottom:24px">
+      <div class="grid-4 dashboard-stats">
         <div class="stat-card">
           <p class="stat-label">Posting Streak</p>
           <p class="stat-value">14</p>
@@ -922,7 +959,7 @@ body {
       </div>
 
       <!-- PHASE SYSTEM -->
-      <div class="card" style="margin-bottom:20px">
+      <div class="card compact-card">
         <p class="card-title">🗺️ Creator Growth Phase</p>
         <p class="card-subtitle">Kamu sedang di fase <strong style="color:var(--accent)">Growing</strong> — terus tingkatkan konsistensi!</p>
         <div class="phase-list">
@@ -941,9 +978,9 @@ body {
         </div>
       </div>
 
-      <div class="grid-2" style="margin-bottom:20px">
+      <div class="grid-2 compact-row">
         <!-- TODAY TASK -->
-        <div class="card">
+        <div class="card compact-card">
           <p class="card-title">📅 Task Hari Ini</p>
           <p class="card-subtitle">AI telah menyiapkan rencana konten kamu</p>
           <div class="content-card" onclick="openContentModal('POV: Kamu beli produk mahal tapi salah pilih — ini yang aku pelajari 😅', 'TikTok · Talking Head · 30-60 detik')">
@@ -963,7 +1000,7 @@ body {
         </div>
 
         <!-- PERFORMANCE SNAP -->
-        <div class="card">
+        <div class="card compact-card">
           <p class="card-title">📊 Performa Mingguan</p>
           <p class="card-subtitle">Views 7 hari terakhir</p>
           <div class="bar-chart">
@@ -997,16 +1034,16 @@ body {
             </div>
           </div>
           <div class="divider"></div>
-          <div style="display:flex;gap:12px;flex-wrap:wrap">
-            <div>
+          <div class="mini-insights">
+            <div class="mini-insight">
               <p style="font-size:11px;color:var(--muted)">Best Format</p>
               <p style="font-size:13px;font-weight:600;color:var(--text)">Storytelling</p>
             </div>
-            <div>
+            <div class="mini-insight">
               <p style="font-size:11px;color:var(--muted)">Best Time</p>
               <p style="font-size:13px;font-weight:600;color:var(--text)">18:00 - 20:00</p>
             </div>
-            <div>
+            <div class="mini-insight">
               <p style="font-size:11px;color:var(--muted)">Best Hook</p>
               <p style="font-size:13px;font-weight:600;color:var(--text)">POV Style</p>
             </div>
@@ -1015,34 +1052,24 @@ body {
       </div>
 
       <!-- AI RECOMMENDATION -->
-      <div class="card">
+      <div class="card compact-card">
         <p class="card-title">✦ AI Smart Recommendations</p>
         <p class="card-subtitle">Berdasarkan data performa dan trend terkini kamu</p>
-        <div class="ai-block">
-          <div style="display:flex;flex-direction:column;gap:12px">
-            <div style="display:flex;gap:12px;align-items:flex-start">
-              <span style="font-size:20px">🎯</span>
-              <div>
-                <p style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px">Fokus POV Storytelling minggu ini</p>
-                <p style="font-size:12px;color:var(--muted)">Format ini menghasilkan rata-rata 3x views lebih tinggi di niche kamu. Trending di TikTok Indonesia saat ini.</p>
-              </div>
-            </div>
-            <div style="display:flex;gap:12px;align-items:flex-start">
-              <span style="font-size:20px">⏰</span>
-              <div>
-                <p style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px">Upload jam 19.00 - 20.30 WIB</p>
-                <p style="font-size:12px;color:var(--muted)">Analisis engagement rate kamu tertinggi di jam ini. Konsisten selama 2 minggu ke depan.</p>
-              </div>
-            </div>
-            <div style="display:flex;gap:12px;align-items:flex-start">
-              <span style="font-size:20px">💡</span>
-              <div>
-                <p style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px">Tambah 1 konten edukasi per minggu</p>
-                <p style="font-size:12px;color:var(--muted)">Audience kamu memiliki save rate 45% lebih tinggi pada konten edukasi. Ini membangun authority.</p>
-              </div>
-            </div>
+        <div class="reco-list">
+          <div class="reco-item">
+            <span>🎯</span>
+            <p><b>Fokus POV Storytelling minggu ini.</b> Format ini rata-rata memberi 3x views lebih tinggi untuk niche kamu.</p>
+          </div>
+          <div class="reco-item">
+            <span>⏰</span>
+            <p><b>Upload jam 19.00–20.30 WIB.</b> Engagement kamu paling stabil di jam ini selama 14 hari terakhir.</p>
+          </div>
+          <div class="reco-item">
+            <span>💡</span>
+            <p><b>Tambah 1 konten edukasi per minggu.</b> Save rate konten edukasi kamu lebih tinggi dan bagus untuk authority.</p>
           </div>
         </div>
+      </div>
       </div>
     </div>
 
@@ -1051,7 +1078,7 @@ body {
       <div style="margin-bottom:24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
         <div>
           <p style="font-size:13px;color:var(--muted);margin-bottom:2px">Senin, 21 April 2026</p>
-          <h2 style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800">Rencana Konten Hari Ini</h2>
+          <h2 style="font-family:'Arial Black', Arial, sans-serif;font-size:20px;font-weight:800">Rencana Konten Hari Ini</h2>
         </div>
         <button class="btn btn-primary" onclick="generateDailyContent()">✦ Generate AI Baru</button>
       </div>
@@ -1170,7 +1197,7 @@ body {
     <div class="page" id="page-identity">
       <div style="margin-bottom:24px">
         <p style="font-size:13px;color:var(--muted);margin-bottom:2px">Creator Profile</p>
-        <h2 style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800">Creator Identity Kamu</h2>
+        <h2 style="font-family:'Arial Black', Arial, sans-serif;font-size:20px;font-weight:800">Creator Identity Kamu</h2>
       </div>
 
       <div class="grid-2" style="margin-bottom:20px">
@@ -1178,7 +1205,7 @@ body {
           <p class="card-title">🎯 Positioning Statement</p>
           <p class="card-subtitle">AI-generated berdasarkan profil kamu</p>
           <div class="ai-block">
-            <p style="font-size:16px;font-weight:600;font-family:'Syne',sans-serif;color:var(--text);line-height:1.4" id="positioningText">
+            <p style="font-size:16px;font-weight:600;font-family:'Arial Black', Arial, sans-serif;color:var(--text);line-height:1.4" id="positioningText">
               Specialist dalam konten edukasi fashion premium yang relatable untuk ibu muda modern Indonesia
             </p>
           </div>
@@ -1275,7 +1302,7 @@ body {
     <!-- PAGE: PERFORMANCE -->
     <div class="page" id="page-performance">
       <div style="margin-bottom:24px;display:flex;justify-content:space-between;align-items:center">
-        <h2 style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800">Analitik Performa</h2>
+        <h2 style="font-family:'Arial Black', Arial, sans-serif;font-size:20px;font-weight:800">Analitik Performa</h2>
         <div style="display:flex;gap:8px">
           <button class="btn btn-ghost" style="font-size:12px;padding:7px 12px">7 Hari</button>
           <button class="btn btn-primary" style="font-size:12px;padding:7px 12px">30 Hari</button>
@@ -1426,7 +1453,7 @@ body {
       <div style="margin-bottom:24px;display:flex;justify-content:space-between;align-items:center">
         <div>
           <p style="font-size:13px;color:var(--muted);margin-bottom:2px">Update otomatis setiap hari</p>
-          <h2 style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800">Trending Intelligence</h2>
+          <h2 style="font-family:'Arial Black', Arial, sans-serif;font-size:20px;font-weight:800">Trending Intelligence</h2>
         </div>
         <span class="badge badge-accent">🔴 Live Update</span>
       </div>
@@ -1536,7 +1563,7 @@ body {
     <!-- PAGE: COMPETITOR -->
     <div class="page" id="page-competitor">
       <div style="margin-bottom:24px">
-        <h2 style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800">Analisis Kompetitor</h2>
+        <h2 style="font-family:'Arial Black', Arial, sans-serif;font-size:20px;font-weight:800">Analisis Kompetitor</h2>
       </div>
 
       <div class="card" style="margin-bottom:20px">
@@ -1622,7 +1649,7 @@ body {
       <div style="margin-bottom:24px;display:flex;justify-content:space-between;align-items:center">
         <div>
           <p style="font-size:13px;color:var(--muted);margin-bottom:2px">Minggu 3 — April 2026</p>
-          <h2 style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800">Strategi Mingguan</h2>
+          <h2 style="font-family:'Arial Black', Arial, sans-serif;font-size:20px;font-weight:800">Strategi Mingguan</h2>
         </div>
         <button class="btn btn-primary" onclick="generateWeeklyStrategy()">✦ Generate Strategi Baru</button>
       </div>
@@ -1756,26 +1783,26 @@ body {
     <!-- PAGE: STREAK -->
     <div class="page" id="page-streak">
       <div style="margin-bottom:24px">
-        <h2 style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800">Streak & Achievement</h2>
+        <h2 style="font-family:'Arial Black', Arial, sans-serif;font-size:20px;font-weight:800">Streak & Achievement</h2>
       </div>
 
       <div class="grid-2" style="margin-bottom:20px">
         <div class="card" style="text-align:center;padding:32px">
           <p style="font-size:60px;margin-bottom:8px">🔥</p>
-          <p style="font-family:'Syne',sans-serif;font-size:56px;font-weight:800;color:var(--accent);line-height:1">14</p>
+          <p style="font-family:'Arial Black', Arial, sans-serif;font-size:56px;font-weight:800;color:var(--accent);line-height:1">14</p>
           <p style="font-size:14px;color:var(--muted);margin-top:4px">Hari Posting Berturut-turut</p>
           <div class="divider"></div>
           <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
             <div>
-              <p style="font-family:'Syne',sans-serif;font-size:22px;font-weight:700;color:var(--text)">18</p>
+              <p style="font-family:'Arial Black', Arial, sans-serif;font-size:22px;font-weight:700;color:var(--text)">18</p>
               <p style="font-size:11px;color:var(--muted)">Bulan Ini</p>
             </div>
             <div>
-              <p style="font-family:'Syne',sans-serif;font-size:22px;font-weight:700;color:var(--text)">56</p>
+              <p style="font-family:'Arial Black', Arial, sans-serif;font-size:22px;font-weight:700;color:var(--text)">56</p>
               <p style="font-size:11px;color:var(--muted)">Total Konten</p>
             </div>
             <div>
-              <p style="font-family:'Syne',sans-serif;font-size:22px;font-weight:700;color:var(--text)">21</p>
+              <p style="font-family:'Arial Black', Arial, sans-serif;font-size:22px;font-weight:700;color:var(--text)">21</p>
               <p style="font-size:11px;color:var(--muted)">Best Streak</p>
             </div>
           </div>
@@ -1863,7 +1890,7 @@ body {
     <!-- PAGE: EVOLUTION -->
     <div class="page" id="page-evolution">
       <div style="margin-bottom:24px">
-        <h2 style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800">Creator Evolution Engine</h2>
+        <h2 style="font-family:'Arial Black', Arial, sans-serif;font-size:20px;font-weight:800">Creator Evolution Engine</h2>
         <p style="font-size:13px;color:var(--muted);margin-top:4px">AI terus mengevolusi niche, positioning, dan arah konten kamu seiring waktu</p>
       </div>
 
@@ -1946,6 +1973,10 @@ body {
   </main>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabaseclient.js"></script>
+<script src="js/auth-flow.js"></script>
+<script src="js/dna-content-crud.js"></script>
 <script>
 // ===== STATE =====
 let currentStep = 1;
@@ -2001,7 +2032,7 @@ function showIdentityResult() {
   const positioning = `Specialist dalam konten edukasi ${niche} yang relatable dan bernilai tinggi untuk audience Indonesia`;
 
   document.getElementById('identityResult').innerHTML = `
-    <p style="font-size:16px;font-weight:700;font-family:'Syne',sans-serif;color:var(--text);line-height:1.4">"${positioning}"</p>
+    <p style="font-size:16px;font-weight:700;font-family:'Arial Black', Arial, sans-serif;color:var(--text);line-height:1.4">"${positioning}"</p>
     <p style="font-size:12px;color:var(--muted);margin-top:8px">Creator Type: Face + Voice · Platform: TikTok + Instagram · Goal: Sales & Authority</p>
   `;
 
@@ -2025,6 +2056,7 @@ function finishOnboarding() {
   document.getElementById('positioningText').textContent = `Specialist dalam konten edukasi ${userData.niche} yang relatable untuk ibu muda modern Indonesia`;
   document.getElementById('dashGreeting').textContent = `${userData.brand}, siap bikin konten hari ini?`;
   buildStreakGrid();
+  persistDNAFromOnboarding();
 }
 
 // ===== NAVIGATION =====
@@ -2122,7 +2154,8 @@ function generateDailyContent() {
     'Kenapa 90% creator Indonesia stuck di bawah 10K followers (dan cara keluar dari situ)',
     'Ini yang aku ubah dan langsung bikin views naik 3x dalam seminggu'
   ];
-  alert('✦ Generating 3 konten baru dengan AI...\n\n' + hooks[Math.floor(Math.random()*hooks.length)]);
+  const hook = hooks[Math.floor(Math.random()*hooks.length)];
+  createContentFromHook(hook);
 }
 
 function analyzePerformance() {
@@ -2158,6 +2191,51 @@ function regenerateContent() {
 function adaptHook(el) {
   const hook = el.querySelector('p').textContent;
   openContentModal(hook.replace('[TOPIK]', userData.niche).replace('[KEPUTUSAN]', `belajar tentang ${userData.niche}`).replace('[KESALAHAN]', `salah pilih produk`).replace('[HARGA]', 'Rp50.000').replace('[PRODUK]', userData.niche), 'TikTok · Hook Template · 30-60 detik');
+}
+
+// ===== BACKEND INTEGRATION (FLOW.md compliant) =====
+async function persistDNAFromOnboarding() {
+  if (!window.DNACRUD) return;
+  try {
+    await window.DNACRUD.upsertBrandDNA({
+      dna_mode: 'brand',
+      brand_name: userData.brand,
+      niche: userData.niche,
+      dna_profile: {
+        positioning: `Specialist konten ${userData.niche}`,
+        creator_name: userData.name
+      }
+    });
+    console.log('DNA tersimpan ke Supabase');
+  } catch (err) {
+    console.warn('DNA belum tersimpan ke Supabase:', err.message);
+  }
+}
+
+async function createContentFromHook(hook) {
+  if (!window.DNACRUD || !window.ContentCRUD) {
+    alert('✦ Generating 3 konten baru dengan AI...\n\n' + hook);
+    return;
+  }
+
+  try {
+    const brand = await window.DNACRUD.getMyBrand();
+    if (!brand) {
+      alert('Brand DNA belum ada. Silakan register/login lalu onboarding ulang.');
+      return;
+    }
+    await window.ContentCRUD.create({
+      brand_id: brand.id,
+      hook,
+      topic: userData.niche,
+      status: 'idea',
+      source: 'ai',
+      dna_alignment_score: 75
+    });
+    alert('Konten baru berhasil disimpan ke database ✅');
+  } catch (err) {
+    alert('Gagal simpan konten: ' + err.message);
+  }
 }
 
 // ===== TAGS =====
