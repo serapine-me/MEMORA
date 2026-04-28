@@ -1,6 +1,7 @@
 (function () {
-  const SUPABASE_URL = window.__SUPABASE_URL__ || localStorage.getItem('SUPABASE_URL') || '';
-  const SUPABASE_ANON_KEY = window.__SUPABASE_ANON_KEY__ || localStorage.getItem('SUPABASE_ANON_KEY') || '';
+  const SUPABASE_URL = window.__SUPABASE_URL__ || localStorage.getItem('https://hhiwxpdzmuzlzprvlanb.supabase.co') || '';
+  const SUPABASE_ANON_KEY = window.__SUPABASE_ANON_KEY__ || localStorage.getItem('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhoaXd4cGR6bXV6bHpwcnZsYW5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxMjY2MTEsImV4cCI6MjA5MjcwMjYxMX0.IycRpp8pK2c5zmBeMF15kfy3MS5ZaQmPd2M8WKHB304
+                                                                                 ') || '';
 
   function ensureClient() {
     if (!window.supabase || !window.supabase.createClient) {
