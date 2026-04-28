@@ -1,20 +1,7 @@
 (function () {
-  // Prioritas config:
-  // 1) window.__SUPABASE_URL__ / window.__SUPABASE_ANON_KEY__
-  // 2) localStorage SUPABASE_URL / SUPABASE_ANON_KEY
-  // 3) hardcoded fallback (isi jika ingin langsung bake-in ke file)
-  const HARDCODED_SUPABASE_URL = '';
-  const HARDCODED_SUPABASE_ANON_KEY = '';
-
-  const SUPABASE_URL =
-    window.__SUPABASE_URL__ ||
-    localStorage.getItem('SUPABASE_URL') ||
-    HARDCODED_SUPABASE_URL;
-
-  const SUPABASE_ANON_KEY =
-    window.__SUPABASE_ANON_KEY__ ||
-    localStorage.getItem('SUPABASE_ANON_KEY') ||
-    HARDCODED_SUPABASE_ANON_KEY;
+  const SUPABASE_URL = window.__SUPABASE_URL__ || localStorage.getItem('https://hhiwxpdzmuzlzprvlanb.supabase.co') || '';
+  const SUPABASE_ANON_KEY = window.__SUPABASE_ANON_KEY__ || localStorage.getItem('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhoaXd4cGR6bXV6bHpwcnZsYW5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxMjY2MTEsImV4cCI6MjA5MjcwMjYxMX0.IycRpp8pK2c5zmBeMF15kfy3MS5ZaQmPd2M8WKHB304
+                                                                                 ') || '';
 
   function ensureClient() {
     if (!window.supabase || !window.supabase.createClient) {
