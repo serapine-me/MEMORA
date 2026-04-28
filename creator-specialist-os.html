@@ -1,0 +1,2201 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Creator Specialist OS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0a0a0f;
+  --surface: #12121a;
+  --surface2: #1a1a26;
+  --border: rgba(255,255,255,0.06);
+  --accent: #c8ff3e;
+  --accent2: #7b61ff;
+  --accent3: #ff6b6b;
+  --text: #f0f0f8;
+  --muted: #6b6b8a;
+  --gold: #f5c842;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--accent2); border-radius: 2px; }
+
+/* LAYOUT */
+.app { display: flex; min-height: 100vh; }
+
+/* SIDEBAR */
+.sidebar {
+  width: 240px;
+  min-width: 240px;
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  height: 100vh;
+  z-index: 100;
+  overflow-y: auto;
+}
+
+.logo {
+  padding: 24px 20px 20px;
+  border-bottom: 1px solid var(--border);
+}
+
+.logo-mark {
+  font-family: 'Syne', sans-serif;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--accent);
+  display: block;
+  margin-bottom: 2px;
+}
+
+.logo-name {
+  font-family: 'Syne', sans-serif;
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.1;
+}
+
+.sidebar-section {
+  padding: 16px 12px 8px;
+}
+
+.sidebar-label {
+  font-size: 9px;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: 0 8px;
+  margin-bottom: 6px;
+}
+
+.nav-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13.5px;
+  font-weight: 400;
+  color: var(--muted);
+  transition: all 0.15s;
+  margin-bottom: 1px;
+  text-decoration: none;
+}
+
+.nav-item:hover { background: var(--surface2); color: var(--text); }
+.nav-item.active { background: rgba(200,255,62,0.08); color: var(--accent); font-weight: 500; }
+.nav-item .icon { font-size: 15px; width: 20px; text-align: center; }
+
+.sidebar-bottom {
+  margin-top: auto;
+  padding: 16px 12px;
+  border-top: 1px solid var(--border);
+}
+
+.user-pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border-radius: 10px;
+  background: var(--surface2);
+  cursor: pointer;
+}
+
+.avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--accent2), var(--accent));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Syne', sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  color: #000;
+  flex-shrink: 0;
+}
+
+.user-info { flex: 1; min-width: 0; }
+.user-name { font-size: 13px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.user-plan { font-size: 11px; color: var(--accent); font-weight: 500; }
+
+/* MAIN */
+.main {
+  margin-left: 240px;
+  flex: 1;
+  min-height: 100vh;
+  background: var(--bg);
+}
+
+/* TOP BAR */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: rgba(10,10,15,0.85);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 14px 32px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.page-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.topbar-actions { display: flex; gap: 10px; align-items: center; }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border: none;
+  transition: all 0.15s;
+  font-family: 'DM Sans', sans-serif;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #000;
+}
+.btn-primary:hover { background: #d4ff55; transform: translateY(-1px); }
+
+.btn-ghost {
+  background: transparent;
+  color: var(--muted);
+  border: 1px solid var(--border);
+}
+.btn-ghost:hover { background: var(--surface); color: var(--text); }
+
+/* PAGES */
+.page { display: none; padding: 32px; max-width: 1280px; }
+.page.active { display: block; }
+
+/* GRID HELPERS */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px; }
+.grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
+
+/* CARD */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 22px;
+  transition: border-color 0.2s;
+}
+.card:hover { border-color: rgba(255,255,255,0.1); }
+
+.card-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.card-subtitle { font-size: 12.5px; color: var(--muted); margin-bottom: 16px; }
+
+/* STAT CARD */
+.stat-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 20px 22px;
+}
+
+.stat-label { font-size: 12px; color: var(--muted); font-weight: 500; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 0.08em; }
+
+.stat-value {
+  font-family: 'Syne', sans-serif;
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1;
+  margin-bottom: 6px;
+}
+
+.stat-change {
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.stat-change.up { color: var(--accent); }
+.stat-change.down { color: var(--accent3); }
+
+/* BADGE */
+.badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+}
+.badge-accent { background: rgba(200,255,62,0.12); color: var(--accent); }
+.badge-purple { background: rgba(123,97,255,0.15); color: #a392ff; }
+.badge-red { background: rgba(255,107,107,0.12); color: var(--accent3); }
+.badge-gold { background: rgba(245,200,66,0.12); color: var(--gold); }
+
+/* PROGRESS BAR */
+.progress-wrap { background: rgba(255,255,255,0.05); border-radius: 4px; height: 6px; overflow: hidden; }
+.progress-bar { height: 100%; border-radius: 4px; transition: width 0.6s ease; }
+.progress-accent { background: var(--accent); }
+.progress-purple { background: var(--accent2); }
+.progress-gold { background: var(--gold); }
+
+/* DIVIDER */
+.divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+/* TAG */
+.tag {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 6px;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  font-size: 12px;
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.tag:hover, .tag.sel { background: rgba(200,255,62,0.1); border-color: var(--accent); color: var(--accent); }
+
+/* INPUT */
+.input-group { margin-bottom: 16px; }
+.input-label { font-size: 12px; font-weight: 500; color: var(--muted); margin-bottom: 6px; display: block; text-transform: uppercase; letter-spacing: 0.06em; }
+
+.input, .textarea, .select {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 14px;
+  color: var(--text);
+  font-size: 14px;
+  font-family: 'DM Sans', sans-serif;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.input:focus, .textarea:focus, .select:focus { border-color: var(--accent2); }
+.textarea { resize: vertical; min-height: 80px; }
+.select option { background: var(--surface); }
+
+/* ONBOARDING */
+.onboard-step { display: none; }
+.onboard-step.active { display: block; }
+
+.step-indicator {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 32px;
+}
+.step-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  transition: all 0.2s;
+}
+.step-dot.done { background: var(--accent); border-color: var(--accent); }
+.step-dot.current { background: var(--accent2); border-color: var(--accent2); width: 24px; border-radius: 4px; }
+
+.step-heading {
+  font-family: 'Syne', sans-serif;
+  font-size: 24px;
+  font-weight: 800;
+  margin-bottom: 6px;
+}
+.step-sub { font-size: 14px; color: var(--muted); margin-bottom: 28px; }
+
+/* CONTENT CARDS */
+.content-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.content-card:hover { border-color: var(--accent2); transform: translateY(-1px); }
+
+.content-hook {
+  font-family: 'Syne', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 8px;
+  line-height: 1.35;
+}
+
+.content-meta {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+/* PHASE SYSTEM */
+.phase-bar {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 20px;
+}
+.phase-item {
+  flex: 1;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--surface2);
+  position: relative;
+  overflow: hidden;
+}
+.phase-item.active::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, var(--accent2), var(--accent));
+  border-radius: 3px;
+}
+.phase-item.done::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--accent);
+  border-radius: 3px;
+}
+
+/* STREAK */
+.streak-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 6px;
+}
+.streak-day {
+  aspect-ratio: 1;
+  border-radius: 6px;
+  background: var(--surface2);
+  transition: all 0.2s;
+  position: relative;
+}
+.streak-day.posted { background: var(--accent); }
+.streak-day.partial { background: rgba(200,255,62,0.35); }
+
+/* MODAL / OVERLAY */
+.overlay {
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.7);
+  z-index: 200;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(4px);
+}
+.overlay.open { display: flex; }
+
+.modal {
+  background: var(--surface);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 18px;
+  padding: 32px;
+  width: 560px;
+  max-width: 95vw;
+  max-height: 90vh;
+  overflow-y: auto;
+  animation: slideUp 0.25s ease;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.modal-title {
+  font-family: 'Syne', sans-serif;
+  font-size: 20px;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+.modal-sub { font-size: 13px; color: var(--muted); margin-bottom: 24px; }
+
+/* AI RESPONSE STREAM */
+.ai-block {
+  background: linear-gradient(135deg, rgba(123,97,255,0.08), rgba(200,255,62,0.04));
+  border: 1px solid rgba(123,97,255,0.2);
+  border-radius: 12px;
+  padding: 18px;
+  margin-top: 12px;
+  position: relative;
+}
+.ai-block::before {
+  content: '✦ AI';
+  position: absolute;
+  top: -10px;
+  left: 14px;
+  background: var(--accent2);
+  color: #fff;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  padding: 2px 8px;
+  border-radius: 20px;
+  font-family: 'Syne', sans-serif;
+}
+
+/* CHART (CSS bars) */
+.bar-chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  height: 100px;
+}
+.bar-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  height: 100%;
+  justify-content: flex-end;
+}
+.bar-col .bar-fill {
+  width: 100%;
+  border-radius: 4px 4px 0 0;
+  background: var(--accent2);
+  transition: height 0.5s ease;
+  min-height: 4px;
+}
+.bar-col .bar-label { font-size: 9px; color: var(--muted); }
+
+/* SCROLL INDICATOR HIDE */
+.hide-scroll { overflow-y: auto; scrollbar-width: none; }
+.hide-scroll::-webkit-scrollbar { display: none; }
+
+/* ANIMATIONS */
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+.fade-in { animation: fadeIn 0.35s ease forwards; }
+
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+.pulse { animation: pulse 1.6s ease-in-out infinite; }
+
+/* TRENDING CARD */
+.trend-card {
+  background: var(--surface2);
+  border-radius: 10px;
+  padding: 14px;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 8px;
+  transition: all 0.15s;
+  cursor: pointer;
+}
+.trend-card:hover { background: rgba(123,97,255,0.08); }
+.trend-icon { font-size: 20px; flex-shrink: 0; }
+.trend-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 3px; }
+.trend-desc { font-size: 12px; color: var(--muted); line-height: 1.4; }
+
+/* PHASE LIST */
+.phase-list { display: flex; gap: 0; border-radius: 10px; overflow: hidden; border: 1px solid var(--border); }
+.phase-step {
+  flex: 1;
+  padding: 12px 10px;
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--muted);
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  cursor: default;
+}
+.phase-step:last-child { border-right: none; }
+.phase-step.current { background: rgba(200,255,62,0.08); color: var(--accent); }
+.phase-step.done { background: rgba(200,255,62,0.04); color: rgba(200,255,62,0.5); }
+
+/* COMPETITOR */
+.comp-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--surface2);
+  border-radius: 10px;
+  margin-bottom: 8px;
+}
+.comp-rank {
+  font-family: 'Syne', sans-serif;
+  font-size: 18px;
+  font-weight: 800;
+  color: var(--muted);
+  width: 28px;
+}
+.comp-info { flex: 1; }
+.comp-name { font-size: 14px; font-weight: 600; color: var(--text); }
+.comp-stat { font-size: 12px; color: var(--muted); }
+.comp-score {
+  font-family: 'Syne', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+/* NOTIFICATION DOT */
+.dot-badge {
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--accent3);
+  flex-shrink: 0;
+}
+
+/* WELCOME SCREEN */
+#welcome {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 40px;
+  text-align: center;
+  background: radial-gradient(ellipse at 50% 0%, rgba(123,97,255,0.12) 0%, transparent 60%);
+}
+
+.welcome-tagline {
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--accent2);
+  margin-bottom: 20px;
+}
+
+.welcome-title {
+  font-family: 'Syne', sans-serif;
+  font-size: clamp(36px, 5vw, 64px);
+  font-weight: 800;
+  line-height: 1.05;
+  margin-bottom: 20px;
+  max-width: 700px;
+}
+
+.welcome-title span { color: var(--accent); }
+
+.welcome-sub {
+  font-size: 16px;
+  color: var(--muted);
+  max-width: 480px;
+  line-height: 1.65;
+  margin-bottom: 36px;
+}
+
+.welcome-actions { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center; }
+
+.btn-large {
+  padding: 14px 28px;
+  font-size: 15px;
+  border-radius: 10px;
+}
+
+/* WEEKLY REPORT */
+.week-item {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px;
+  background: var(--surface2);
+  border-radius: 10px;
+  margin-bottom: 8px;
+}
+.week-icon { font-size: 22px; }
+.week-title { font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+.week-detail { font-size: 12px; color: var(--muted); }
+
+/* LOADING */
+.loading-dots::after {
+  content: '...';
+  animation: dots 1.2s steps(4, end) infinite;
+}
+@keyframes dots {
+  0%,20%{content:'.'} 40%{content:'..'} 60%,100%{content:'...'}
+}
+
+/* Responsive */
+@media (max-width: 900px) {
+  .grid-4 { grid-template-columns: 1fr 1fr; }
+  .grid-3 { grid-template-columns: 1fr; }
+}
+@media (max-width: 700px) {
+  .sidebar { display: none; }
+  .main { margin-left: 0; }
+  .grid-2, .grid-4 { grid-template-columns: 1fr; }
+  .page { padding: 20px 16px; }
+}
+</style>
+</head>
+<body>
+
+<!-- WELCOME -->
+<div id="welcome">
+  <p class="welcome-tagline">Creator Specialist OS · v1.0</p>
+  <h1 class="welcome-title">Jadilah <span>Creator Specialist</span><br>yang Tak Tergantikan</h1>
+  <p class="welcome-sub">Sistem AI pertama yang membangun karir creator kamu secara sistematis — bukan hanya generate konten, tapi evolusi positioning, analitik, dan strategi setiap hari.</p>
+  <div class="welcome-actions">
+    <button class="btn btn-primary btn-large" onclick="startOnboarding()">🚀 Mulai Gratis</button>
+    <button class="btn btn-ghost btn-large" onclick="enterApp()">Masuk ke Dashboard →</button>
+  </div>
+</div>
+
+<!-- ONBOARDING OVERLAY -->
+<div class="overlay" id="onboardOverlay">
+  <div class="modal" style="width:600px;">
+    <div class="step-indicator" id="stepIndicator"></div>
+
+    <!-- Step 1 -->
+    <div class="onboard-step active" id="step1">
+      <h2 class="step-heading">Tentang Brand Kamu</h2>
+      <p class="step-sub">Kami akan bangun Creator Identity kamu dari sini.</p>
+      <div class="input-group">
+        <label class="input-label">Nama Brand / Personal Brand</label>
+        <input class="input" id="ob_brand" placeholder="misal: StyleBy Rani" />
+      </div>
+      <div class="input-group">
+        <label class="input-label">Industri / Niche</label>
+        <input class="input" id="ob_niche" placeholder="misal: Fashion Hijab, Kuliner Sehat, Tech Review..." />
+      </div>
+      <div class="input-group">
+        <label class="input-label">Produk / Layanan</label>
+        <input class="input" id="ob_product" placeholder="misal: Jual baju, Jasa coaching, Affiliate..." />
+      </div>
+      <div class="input-group">
+        <label class="input-label">Target Audience</label>
+        <input class="input" id="ob_audience" placeholder="misal: Ibu muda 25-35 tahun, income menengah..." />
+      </div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;padding:12px" onclick="nextStep(1)">Lanjut →</button>
+    </div>
+
+    <!-- Step 2 -->
+    <div class="onboard-step" id="step2">
+      <h2 class="step-heading">Platform & Gaya Konten</h2>
+      <p class="step-sub">Di mana kamu mau berkreasi?</p>
+      <div class="input-group">
+        <label class="input-label">Platform Utama</label>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;" id="platformTags">
+          <span class="tag sel" onclick="toggleTag(this)">📱 TikTok</span>
+          <span class="tag" onclick="toggleTag(this)">📸 Instagram</span>
+          <span class="tag" onclick="toggleTag(this)">▶️ YouTube Shorts</span>
+          <span class="tag" onclick="toggleTag(this)">🛍️ Shopee Video</span>
+        </div>
+      </div>
+      <div class="input-group">
+        <label class="input-label">Creator Style</label>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;" id="styleTags">
+          <span class="tag" onclick="toggleTag(this)">🎭 Faceless</span>
+          <span class="tag sel" onclick="toggleTag(this)">😊 Face + Voice</span>
+          <span class="tag" onclick="toggleTag(this)">🎙️ Voice Only</span>
+          <span class="tag" onclick="toggleTag(this)">✍️ Text Only</span>
+        </div>
+      </div>
+      <div class="input-group">
+        <label class="input-label">Kepribadian Brand</label>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;" id="personalityTags">
+          <span class="tag" onclick="toggleTag(this)">🔥 Bold</span>
+          <span class="tag sel" onclick="toggleTag(this)">💛 Friendly</span>
+          <span class="tag" onclick="toggleTag(this)">💼 Professional</span>
+          <span class="tag" onclick="toggleTag(this)">👑 Premium</span>
+          <span class="tag" onclick="toggleTag(this)">📚 Educational</span>
+          <span class="tag" onclick="toggleTag(this)">📖 Storytelling</span>
+        </div>
+      </div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;padding:12px" onclick="nextStep(2)">Lanjut →</button>
+    </div>
+
+    <!-- Step 3 -->
+    <div class="onboard-step" id="step3">
+      <h2 class="step-heading">Waktu & Tujuan</h2>
+      <p class="step-sub">Sistem akan menyesuaikan plan harianmu.</p>
+      <div class="input-group">
+        <label class="input-label">Waktu Tersedia per Hari</label>
+        <div style="display:flex;gap:8px;" id="timeTags">
+          <span class="tag" onclick="singleTag(this,'timeTags')" style="flex:1;justify-content:center">⚡ 30 menit</span>
+          <span class="tag sel" onclick="singleTag(this,'timeTags')" style="flex:1;justify-content:center">🕐 1 jam</span>
+          <span class="tag" onclick="singleTag(this,'timeTags')" style="flex:1;justify-content:center">⏰ 2+ jam</span>
+        </div>
+      </div>
+      <div class="input-group">
+        <label class="input-label">Level Pengalaman</label>
+        <div style="display:flex;gap:8px;" id="levelTags">
+          <span class="tag sel" onclick="singleTag(this,'levelTags')" style="flex:1;justify-content:center">🌱 Beginner</span>
+          <span class="tag" onclick="singleTag(this,'levelTags')" style="flex:1;justify-content:center">🌿 Intermediate</span>
+          <span class="tag" onclick="singleTag(this,'levelTags')" style="flex:1;justify-content:center">🌳 Advanced</span>
+        </div>
+      </div>
+      <div class="input-group">
+        <label class="input-label">Tujuan Utama</label>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;" id="goalTags">
+          <span class="tag" onclick="toggleTag(this)">👥 Followers Growth</span>
+          <span class="tag sel" onclick="toggleTag(this)">💰 Sales Growth</span>
+          <span class="tag" onclick="toggleTag(this)">🎯 Authority Building</span>
+          <span class="tag" onclick="toggleTag(this)">✨ Personal Brand</span>
+        </div>
+      </div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;padding:12px" onclick="nextStep(3)">Bangun Creator Identity →</button>
+    </div>
+
+    <!-- Step 4 - AI Result -->
+    <div class="onboard-step" id="step4">
+      <h2 class="step-heading">🎉 Creator Identity Kamu</h2>
+      <p class="step-sub">AI telah membangun positioning kamu berdasarkan data.</p>
+      <div class="ai-block" id="identityResult">
+        <p class="pulse" style="font-size:13px;color:var(--muted);">AI sedang membangun positioning kamu<span class="loading-dots"></span></p>
+      </div>
+      <div style="margin-top:20px;">
+        <p class="step-sub">Content Pillars kamu:</p>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;" id="pillarsResult"></div>
+      </div>
+      <button class="btn btn-primary" style="width:100%;justify-content:center;padding:12px;margin-top:24px" onclick="finishOnboarding()">Masuk ke Dashboard 🚀</button>
+    </div>
+  </div>
+</div>
+
+<!-- CONTENT MODAL -->
+<div class="overlay" id="contentModal">
+  <div class="modal">
+    <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:20px">
+      <div>
+        <p class="modal-title" id="modalHook">Hook Content</p>
+        <p class="modal-sub" id="modalMeta">Format · Platform</p>
+      </div>
+      <button class="btn btn-ghost" style="padding:6px 12px" onclick="closeModal('contentModal')">✕</button>
+    </div>
+    <div id="modalBody"></div>
+    <div style="display:flex;gap:10px;margin-top:20px">
+      <button class="btn btn-primary" style="flex:1;justify-content:center" onclick="closeModal('contentModal')">✅ Tandai Selesai</button>
+      <button class="btn btn-ghost" style="justify-content:center" onclick="regenerateContent()">🔄 Generate Ulang</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div class="app" id="mainApp" style="display:none">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="logo">
+      <span class="logo-mark">Creator</span>
+      <span class="logo-name">Specialist OS</span>
+    </div>
+
+    <div class="sidebar-section">
+      <p class="sidebar-label">Utama</p>
+      <a class="nav-item active" onclick="showPage('dashboard', this)">
+        <span class="icon">⚡</span> Dashboard
+      </a>
+      <a class="nav-item" onclick="showPage('daily', this)">
+        <span class="icon">📅</span> Rencana Harian
+      </a>
+      <a class="nav-item" onclick="showPage('identity', this)">
+        <span class="icon">🎯</span> Creator Identity
+      </a>
+    </div>
+
+    <div class="sidebar-section">
+      <p class="sidebar-label">Analitik</p>
+      <a class="nav-item" onclick="showPage('performance', this)">
+        <span class="icon">📊</span> Performa
+      </a>
+      <a class="nav-item" onclick="showPage('trending', this)">
+        <span class="icon">🔥</span> Trending <span class="dot-badge" style="margin-left:auto"></span>
+      </a>
+      <a class="nav-item" onclick="showPage('competitor', this)">
+        <span class="icon">🔍</span> Kompetitor
+      </a>
+    </div>
+
+    <div class="sidebar-section">
+      <p class="sidebar-label">Growth</p>
+      <a class="nav-item" onclick="showPage('strategy', this)">
+        <span class="icon">🗺️</span> Strategi Mingguan
+      </a>
+      <a class="nav-item" onclick="showPage('streak', this)">
+        <span class="icon">🔥</span> Streak & Badges
+      </a>
+      <a class="nav-item" onclick="showPage('evolution', this)">
+        <span class="icon">🌱</span> Creator Evolution
+      </a>
+    </div>
+
+    <div class="sidebar-bottom">
+      <div class="user-pill">
+        <div class="avatar" id="sideAvatar">R</div>
+        <div class="user-info">
+          <p class="user-name" id="sideUserName">Creator</p>
+          <p class="user-plan">⭐ Pro Plan</p>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main">
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <p class="page-title" id="pageTitle">Dashboard</p>
+      <div class="topbar-actions">
+        <button class="btn btn-ghost" onclick="showPage('daily', document.querySelector('[onclick*=daily]'))">📅 Buat Konten Hari Ini</button>
+        <button class="btn btn-primary" onclick="openModal('contentModal')">✦ Generate AI</button>
+      </div>
+    </div>
+
+    <!-- PAGE: DASHBOARD -->
+    <div class="page active" id="page-dashboard">
+      <div style="margin-bottom:24px">
+        <p style="font-size:13px;color:var(--muted);margin-bottom:4px">Selamat datang kembali 👋</p>
+        <h2 style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800" id="dashGreeting">Creator, siap bikin konten hari ini?</h2>
+      </div>
+
+      <!-- STATS ROW -->
+      <div class="grid-4" style="margin-bottom:24px">
+        <div class="stat-card">
+          <p class="stat-label">Posting Streak</p>
+          <p class="stat-value">14</p>
+          <p class="stat-change up">🔥 Hari berturut-turut</p>
+        </div>
+        <div class="stat-card">
+          <p class="stat-label">Total Views</p>
+          <p class="stat-value">84K</p>
+          <p class="stat-change up">↑ 23% minggu ini</p>
+        </div>
+        <div class="stat-card">
+          <p class="stat-label">Creator Phase</p>
+          <p class="stat-value" style="font-size:18px">Growing</p>
+          <p class="stat-change up">Level 2 / 5</p>
+        </div>
+        <div class="stat-card">
+          <p class="stat-label">Konten Bulan Ini</p>
+          <p class="stat-value">18</p>
+          <p class="stat-change up">↑ Target: 25</p>
+        </div>
+      </div>
+
+      <!-- PHASE SYSTEM -->
+      <div class="card" style="margin-bottom:20px">
+        <p class="card-title">🗺️ Creator Growth Phase</p>
+        <p class="card-subtitle">Kamu sedang di fase <strong style="color:var(--accent)">Growing</strong> — terus tingkatkan konsistensi!</p>
+        <div class="phase-list">
+          <div class="phase-step done">🌱<br>Beginner</div>
+          <div class="phase-step current">📈<br>Growing</div>
+          <div class="phase-step">⚡<br>Authority</div>
+          <div class="phase-step">🎯<br>Specialist</div>
+          <div class="phase-step">👑<br>Influencer</div>
+        </div>
+        <div style="margin-top:14px">
+          <div style="display:flex;justify-content:space-between;margin-bottom:6px">
+            <span style="font-size:12px;color:var(--muted)">Progress ke fase Authority</span>
+            <span style="font-size:12px;color:var(--accent);font-weight:600">67%</span>
+          </div>
+          <div class="progress-wrap"><div class="progress-bar progress-accent" style="width:67%"></div></div>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-bottom:20px">
+        <!-- TODAY TASK -->
+        <div class="card">
+          <p class="card-title">📅 Task Hari Ini</p>
+          <p class="card-subtitle">AI telah menyiapkan rencana konten kamu</p>
+          <div class="content-card" onclick="openContentModal('POV: Kamu beli produk mahal tapi salah pilih — ini yang aku pelajari 😅', 'TikTok · Talking Head · 30-60 detik')">
+            <div style="display:flex;justify-content:space-between;margin-bottom:8px">
+              <span class="badge badge-accent">Prioritas Tinggi</span>
+              <span class="badge badge-purple">Talking Head</span>
+            </div>
+            <p class="content-hook">POV: Kamu beli produk mahal tapi salah pilih — ini yang aku pelajari 😅</p>
+            <p style="font-size:12px;color:var(--muted);margin-bottom:8px">Format storytelling dengan hook emosional. Tren sedang naik 📈</p>
+            <div class="content-meta">
+              <span class="tag" style="cursor:default">📱 TikTok</span>
+              <span class="tag" style="cursor:default">⏱️ 30-60s</span>
+              <span class="tag" style="cursor:default">📖 Storytelling</span>
+            </div>
+          </div>
+          <button class="btn btn-ghost" style="width:100%;justify-content:center;margin-top:8px" onclick="showPage('daily', document.querySelector('[onclick*=daily]'))">Lihat Semua Konten →</button>
+        </div>
+
+        <!-- PERFORMANCE SNAP -->
+        <div class="card">
+          <p class="card-title">📊 Performa Mingguan</p>
+          <p class="card-subtitle">Views 7 hari terakhir</p>
+          <div class="bar-chart">
+            <div class="bar-col">
+              <div class="bar-fill" style="height:40%;background:var(--accent2)"></div>
+              <span class="bar-label">Sen</span>
+            </div>
+            <div class="bar-col">
+              <div class="bar-fill" style="height:65%;background:var(--accent2)"></div>
+              <span class="bar-label">Sel</span>
+            </div>
+            <div class="bar-col">
+              <div class="bar-fill" style="height:50%;background:var(--accent2)"></div>
+              <span class="bar-label">Rab</span>
+            </div>
+            <div class="bar-col">
+              <div class="bar-fill" style="height:80%;background:var(--accent)"></div>
+              <span class="bar-label">Kam</span>
+            </div>
+            <div class="bar-col">
+              <div class="bar-fill" style="height:90%;background:var(--accent)"></div>
+              <span class="bar-label">Jum</span>
+            </div>
+            <div class="bar-col">
+              <div class="bar-fill" style="height:70%;background:var(--accent2)"></div>
+              <span class="bar-label">Sab</span>
+            </div>
+            <div class="bar-col">
+              <div class="bar-fill" style="height:55%;background:var(--accent2)"></div>
+              <span class="bar-label">Min</span>
+            </div>
+          </div>
+          <div class="divider"></div>
+          <div style="display:flex;gap:12px;flex-wrap:wrap">
+            <div>
+              <p style="font-size:11px;color:var(--muted)">Best Format</p>
+              <p style="font-size:13px;font-weight:600;color:var(--text)">Storytelling</p>
+            </div>
+            <div>
+              <p style="font-size:11px;color:var(--muted)">Best Time</p>
+              <p style="font-size:13px;font-weight:600;color:var(--text)">18:00 - 20:00</p>
+            </div>
+            <div>
+              <p style="font-size:11px;color:var(--muted)">Best Hook</p>
+              <p style="font-size:13px;font-weight:600;color:var(--text)">POV Style</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- AI RECOMMENDATION -->
+      <div class="card">
+        <p class="card-title">✦ AI Smart Recommendations</p>
+        <p class="card-subtitle">Berdasarkan data performa dan trend terkini kamu</p>
+        <div class="ai-block">
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <div style="display:flex;gap:12px;align-items:flex-start">
+              <span style="font-size:20px">🎯</span>
+              <div>
+                <p style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px">Fokus POV Storytelling minggu ini</p>
+                <p style="font-size:12px;color:var(--muted)">Format ini menghasilkan rata-rata 3x views lebih tinggi di niche kamu. Trending di TikTok Indonesia saat ini.</p>
+              </div>
+            </div>
+            <div style="display:flex;gap:12px;align-items:flex-start">
+              <span style="font-size:20px">⏰</span>
+              <div>
+                <p style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px">Upload jam 19.00 - 20.30 WIB</p>
+                <p style="font-size:12px;color:var(--muted)">Analisis engagement rate kamu tertinggi di jam ini. Konsisten selama 2 minggu ke depan.</p>
+              </div>
+            </div>
+            <div style="display:flex;gap:12px;align-items:flex-start">
+              <span style="font-size:20px">💡</span>
+              <div>
+                <p style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px">Tambah 1 konten edukasi per minggu</p>
+                <p style="font-size:12px;color:var(--muted)">Audience kamu memiliki save rate 45% lebih tinggi pada konten edukasi. Ini membangun authority.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: DAILY -->
+    <div class="page" id="page-daily">
+      <div style="margin-bottom:24px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+        <div>
+          <p style="font-size:13px;color:var(--muted);margin-bottom:2px">Senin, 21 April 2026</p>
+          <h2 style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800">Rencana Konten Hari Ini</h2>
+        </div>
+        <button class="btn btn-primary" onclick="generateDailyContent()">✦ Generate AI Baru</button>
+      </div>
+
+      <div class="grid-2">
+        <div>
+          <!-- Content Idea 1 -->
+          <div class="content-card fade-in" onclick="openContentModal('POV: Kamu beli produk mahal tapi salah pilih — ini yang aku pelajari 😅', 'TikTok · Talking Head · 30-60 detik')" style="border-left:3px solid var(--accent)">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+              <span class="badge badge-accent">🔥 Trending</span>
+              <span style="font-size:11px;color:var(--muted)">Est. 2-5K views</span>
+            </div>
+            <p class="content-hook">POV: Kamu beli produk mahal tapi salah pilih — ini yang aku pelajari 😅</p>
+            <p style="font-size:12px;color:var(--muted);margin:8px 0">Format storytelling, hook emosional, relate untuk target audience 25-35 tahun.</p>
+            <div class="content-meta">
+              <span class="tag" style="cursor:default">📱 TikTok</span>
+              <span class="tag" style="cursor:default">🎬 Talking Head</span>
+              <span class="tag" style="cursor:default">60s</span>
+            </div>
+          </div>
+
+          <!-- Content Idea 2 -->
+          <div class="content-card fade-in" onclick="openContentModal('3 kesalahan pemula yang bikin follower gak naik-naik (dan cara fixnya)', 'TikTok/IG Reels · Edukasi · 45-90 detik')" style="border-left:3px solid var(--accent2)">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+              <span class="badge badge-purple">📚 Edukasi</span>
+              <span style="font-size:11px;color:var(--muted)">Est. 1-3K views</span>
+            </div>
+            <p class="content-hook">3 kesalahan pemula yang bikin follower gak naik-naik (dan cara fixnya)</p>
+            <p style="font-size:12px;color:var(--muted);margin:8px 0">Konten authority building. Save rate tinggi di niche ini. Cocok untuk malam hari.</p>
+            <div class="content-meta">
+              <span class="tag" style="cursor:default">📸 IG Reels</span>
+              <span class="tag" style="cursor:default">📚 Edukasi</span>
+              <span class="tag" style="cursor:default">90s</span>
+            </div>
+          </div>
+
+          <!-- Content Idea 3 -->
+          <div class="content-card fade-in" onclick="openContentModal('Rating jujur produk Rp50rb vs Rp500rb — mana yang lebih worth?', 'TikTok · Review · 60-90 detik')">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+              <span class="badge badge-gold">💰 Sales</span>
+              <span style="font-size:11px;color:var(--muted)">Est. 3-8K views</span>
+            </div>
+            <p class="content-hook">Rating jujur produk Rp50rb vs Rp500rb — mana yang lebih worth?</p>
+            <p style="font-size:12px;color:var(--muted);margin:8px 0">Review comparison. High click-through untuk link produk. Ideal untuk konversi sales.</p>
+            <div class="content-meta">
+              <span class="tag" style="cursor:default">📱 TikTok</span>
+              <span class="tag" style="cursor:default">⭐ Review</span>
+              <span class="tag" style="cursor:default">90s</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Caption + Hashtag Generator -->
+        <div>
+          <div class="card" style="margin-bottom:16px">
+            <p class="card-title">✍️ Caption Generator</p>
+            <p class="card-subtitle">Masukkan ide atau pilih konten di kiri</p>
+            <div class="input-group">
+              <label class="input-label">Topik / Hook</label>
+              <input class="input" id="captionInput" placeholder="misal: review produk murah vs mahal..." />
+            </div>
+            <div class="input-group">
+              <label class="input-label">Tone</label>
+              <select class="select" id="captionTone">
+                <option>Friendly & Relatable</option>
+                <option>Bold & Direct</option>
+                <option>Educational</option>
+                <option>Storytelling</option>
+                <option>Premium</option>
+              </select>
+            </div>
+            <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="generateCaption()">✦ Generate Caption</button>
+            <div id="captionResult" style="margin-top:12px;display:none">
+              <div class="ai-block">
+                <p id="captionText" style="font-size:13px;line-height:1.6;color:var(--text)"></p>
+              </div>
+              <div style="margin-top:12px">
+                <p style="font-size:11px;color:var(--muted);margin-bottom:8px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;">Hashtag</p>
+                <div id="hashtagResult" style="display:flex;flex-wrap:wrap;gap:6px"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <p class="card-title">⏰ Jadwal Upload Optimal</p>
+            <p class="card-subtitle">Berdasarkan analisis audience kamu</p>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="background:var(--surface2);border-radius:8px;padding:12px;display:flex;justify-content:space-between;align-items:center">
+                <div>
+                  <p style="font-size:13px;font-weight:600">Pagi</p>
+                  <p style="font-size:11px;color:var(--muted)">06:30 - 08:00</p>
+                </div>
+                <span class="badge badge-purple">Sedang</span>
+              </div>
+              <div style="background:rgba(200,255,62,0.06);border:1px solid rgba(200,255,62,0.15);border-radius:8px;padding:12px;display:flex;justify-content:space-between;align-items:center">
+                <div>
+                  <p style="font-size:13px;font-weight:600;color:var(--accent)">⭐ Sore-Malam</p>
+                  <p style="font-size:11px;color:var(--muted)">18:30 - 20:30</p>
+                </div>
+                <span class="badge badge-accent">Terbaik</span>
+              </div>
+              <div style="background:var(--surface2);border-radius:8px;padding:12px;display:flex;justify-content:space-between;align-items:center">
+                <div>
+                  <p style="font-size:13px;font-weight:600">Malam</p>
+                  <p style="font-size:11px;color:var(--muted)">21:00 - 22:30</p>
+                </div>
+                <span class="badge badge-purple">Baik</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: IDENTITY -->
+    <div class="page" id="page-identity">
+      <div style="margin-bottom:24px">
+        <p style="font-size:13px;color:var(--muted);margin-bottom:2px">Creator Profile</p>
+        <h2 style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800">Creator Identity Kamu</h2>
+      </div>
+
+      <div class="grid-2" style="margin-bottom:20px">
+        <div class="card">
+          <p class="card-title">🎯 Positioning Statement</p>
+          <p class="card-subtitle">AI-generated berdasarkan profil kamu</p>
+          <div class="ai-block">
+            <p style="font-size:16px;font-weight:600;font-family:'Syne',sans-serif;color:var(--text);line-height:1.4" id="positioningText">
+              Specialist dalam konten edukasi fashion premium yang relatable untuk ibu muda modern Indonesia
+            </p>
+          </div>
+          <div class="divider"></div>
+          <p style="font-size:12px;color:var(--muted);margin-bottom:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em">Brand Personality</p>
+          <div style="display:flex;flex-wrap:wrap;gap:8px">
+            <span class="badge badge-accent">Friendly</span>
+            <span class="badge badge-purple">Educational</span>
+            <span class="badge badge-gold">Premium</span>
+          </div>
+        </div>
+
+        <div class="card">
+          <p class="card-title">📌 Content Pillars</p>
+          <p class="card-subtitle">5 topik utama yang membangun brand kamu</p>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="background:var(--surface2);border-radius:8px;padding:12px;display:flex;align-items:center;gap:10px">
+              <span style="font-size:20px">👗</span>
+              <div>
+                <p style="font-size:13px;font-weight:600">Style Tips & Outfit Ideas</p>
+                <p style="font-size:11px;color:var(--muted)">Konten inspirasi & tutorial harian</p>
+              </div>
+            </div>
+            <div style="background:var(--surface2);border-radius:8px;padding:12px;display:flex;align-items:center;gap:10px">
+              <span style="font-size:20px">💰</span>
+              <div>
+                <p style="font-size:13px;font-weight:600">Smart Shopping Guide</p>
+                <p style="font-size:11px;color:var(--muted)">Review & perbandingan produk jujur</p>
+              </div>
+            </div>
+            <div style="background:var(--surface2);border-radius:8px;padding:12px;display:flex;align-items:center;gap:10px">
+              <span style="font-size:20px">🌸</span>
+              <div>
+                <p style="font-size:13px;font-weight:600">Ibu Muda Stylish</p>
+                <p style="font-size:11px;color:var(--muted)">Koneksi relatable dengan audience</p>
+              </div>
+            </div>
+            <div style="background:var(--surface2);border-radius:8px;padding:12px;display:flex;align-items:center;gap:10px">
+              <span style="font-size:20px">📚</span>
+              <div>
+                <p style="font-size:13px;font-weight:600">Fashion Education</p>
+                <p style="font-size:11px;color:var(--muted)">Authority building & nilai tambah</p>
+              </div>
+            </div>
+            <div style="background:var(--surface2);border-radius:8px;padding:12px;display:flex;align-items:center;gap:10px">
+              <span style="font-size:20px">✨</span>
+              <div>
+                <p style="font-size:13px;font-weight:600">Behind the Scene</p>
+                <p style="font-size:11px;color:var(--muted)">Personal brand & kepercayaan</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <p class="card-title">🗣️ Tone of Voice Guide</p>
+        <p class="card-subtitle">Panduan suara brand yang konsisten</p>
+        <div class="grid-3">
+          <div style="background:var(--surface2);border-radius:10px;padding:16px">
+            <p style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.1em">✅ Gunakan</p>
+            <ul style="font-size:12px;color:var(--muted);line-height:1.8;list-style:none;padding:0">
+              <li>• Bahasa percakapan sehari-hari</li>
+              <li>• Cerita relatable & jujur</li>
+              <li>• Kata-kata yang hangat</li>
+              <li>• Emoji yang relevan</li>
+              <li>• Tips praktis actionable</li>
+            </ul>
+          </div>
+          <div style="background:var(--surface2);border-radius:10px;padding:16px">
+            <p style="font-size:12px;font-weight:700;color:var(--accent3);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.1em">❌ Hindari</p>
+            <ul style="font-size:12px;color:var(--muted);line-height:1.8;list-style:none;padding:0">
+              <li>• Bahasa terlalu formal</li>
+              <li>• Klaim berlebihan</li>
+              <li>• Konten negatif/drama</li>
+              <li>• Terlalu banyak promosi</li>
+              <li>• Bahasa tidak konsisten</li>
+            </ul>
+          </div>
+          <div style="background:var(--surface2);border-radius:10px;padding:16px">
+            <p style="font-size:12px;font-weight:700;color:var(--accent2);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.1em">💡 Ciri Khas</p>
+            <ul style="font-size:12px;color:var(--muted);line-height:1.8;list-style:none;padding:0">
+              <li>• Jujur & apa adanya</li>
+              <li>• Informatif tapi fun</li>
+              <li>• Selalu ada takeaway</li>
+              <li>• Relate tapi aspirasional</li>
+              <li>• Konsisten & predictable</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: PERFORMANCE -->
+    <div class="page" id="page-performance">
+      <div style="margin-bottom:24px;display:flex;justify-content:space-between;align-items:center">
+        <h2 style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800">Analitik Performa</h2>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-ghost" style="font-size:12px;padding:7px 12px">7 Hari</button>
+          <button class="btn btn-primary" style="font-size:12px;padding:7px 12px">30 Hari</button>
+          <button class="btn btn-ghost" style="font-size:12px;padding:7px 12px">3 Bulan</button>
+        </div>
+      </div>
+
+      <div class="grid-4" style="margin-bottom:24px">
+        <div class="stat-card">
+          <p class="stat-label">Total Views</p>
+          <p class="stat-value">84.2K</p>
+          <p class="stat-change up">↑ 31% vs bulan lalu</p>
+        </div>
+        <div class="stat-card">
+          <p class="stat-label">Engagement Rate</p>
+          <p class="stat-value">8.4%</p>
+          <p class="stat-change up">↑ 2.1% vs bulan lalu</p>
+        </div>
+        <div class="stat-card">
+          <p class="stat-label">Followers Baru</p>
+          <p class="stat-value">+1.2K</p>
+          <p class="stat-change up">↑ 18% vs bulan lalu</p>
+        </div>
+        <div class="stat-card">
+          <p class="stat-label">Konversi Sales</p>
+          <p class="stat-value">2.3%</p>
+          <p class="stat-change down">↓ 0.4% vs bulan lalu</p>
+        </div>
+      </div>
+
+      <div class="grid-2" style="margin-bottom:20px">
+        <div class="card">
+          <p class="card-title">📊 Input Data Konten</p>
+          <p class="card-subtitle">Masukkan performa konten terbaru kamu</p>
+          <div class="input-group">
+            <label class="input-label">Judul / Hook Konten</label>
+            <input class="input" placeholder="misal: POV beli produk salah pilih..." />
+          </div>
+          <div class="grid-2" style="gap:10px">
+            <div class="input-group">
+              <label class="input-label">Views</label>
+              <input class="input" type="number" placeholder="12500" />
+            </div>
+            <div class="input-group">
+              <label class="input-label">Likes</label>
+              <input class="input" type="number" placeholder="980" />
+            </div>
+            <div class="input-group">
+              <label class="input-label">Comments</label>
+              <input class="input" type="number" placeholder="45" />
+            </div>
+            <div class="input-group">
+              <label class="input-label">Saves</label>
+              <input class="input" type="number" placeholder="234" />
+            </div>
+          </div>
+          <div class="input-group">
+            <label class="input-label">Orders dari Konten ini</label>
+            <input class="input" type="number" placeholder="12" />
+          </div>
+          <button class="btn btn-primary" style="width:100%;justify-content:center" onclick="analyzePerformance()">✦ Analisis AI</button>
+          <div id="perfResult" style="display:none;margin-top:12px">
+            <div class="ai-block">
+              <p style="font-size:13px;line-height:1.6;color:var(--text)">Konten ini memiliki <strong>engagement rate 9.8%</strong> — di atas rata-rata niche kamu (6.2%). Hook "POV" terbukti efektif. Save rate tinggi menunjukkan konten bernilai edukasi. <strong>Rekomendasi:</strong> Buat seri lanjutan dari konten ini minggu depan.</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <p class="card-title">🏆 Top Performing Content</p>
+          <p class="card-subtitle">Konten terbaik 30 hari terakhir</p>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div class="comp-row">
+              <div class="comp-rank">1</div>
+              <div class="comp-info">
+                <p class="comp-name">POV: Salah pilih produk mahal</p>
+                <p class="comp-stat">24.5K views · 11.2% ER</p>
+              </div>
+              <span class="badge badge-accent">🔥 Viral</span>
+            </div>
+            <div class="comp-row">
+              <div class="comp-rank">2</div>
+              <div class="comp-info">
+                <p class="comp-name">3 outfit ke kantor budget 200K</p>
+                <p class="comp-stat">18.2K views · 9.4% ER</p>
+              </div>
+              <span class="badge badge-purple">Top</span>
+            </div>
+            <div class="comp-row">
+              <div class="comp-rank">3</div>
+              <div class="comp-info">
+                <p class="comp-name">Review jujur brand lokal vs impor</p>
+                <p class="comp-stat">12.8K views · 8.7% ER</p>
+              </div>
+              <span class="badge badge-purple">Top</span>
+            </div>
+            <div class="comp-row">
+              <div class="comp-rank">4</div>
+              <div class="comp-info">
+                <p class="comp-name">Tips mix & match 5 item jadi 10 look</p>
+                <p class="comp-stat">9.1K views · 7.9% ER</p>
+              </div>
+              <span class="badge badge-gold">Bagus</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <p class="card-title">✦ AI Performance Insight</p>
+        <p class="card-subtitle">Analisis mendalam berdasarkan data 30 hari kamu</p>
+        <div class="ai-block">
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px">
+            <div>
+              <p style="font-size:11px;font-weight:700;color:var(--accent);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.1em">📈 Yang Bekerja</p>
+              <ul style="font-size:12px;color:var(--muted);line-height:1.8;list-style:none;padding:0">
+                <li>• Hook POV + emosi</li>
+                <li>• Durasi 45-75 detik</li>
+                <li>• Upload jam 19-20 WIB</li>
+                <li>• Topik review jujur</li>
+              </ul>
+            </div>
+            <div>
+              <p style="font-size:11px;font-weight:700;color:var(--accent3);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.1em">📉 Yang Perlu Stop</p>
+              <ul style="font-size:12px;color:var(--muted);line-height:1.8;list-style:none;padding:0">
+                <li>• Video >2 menit</li>
+                <li>• Hook pertanyaan datar</li>
+                <li>• Upload weekday pagi</li>
+                <li>• Konten terlalu promosi</li>
+              </ul>
+            </div>
+            <div>
+              <p style="font-size:11px;font-weight:700;color:var(--accent2);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.1em">💡 Opportunity</p>
+              <ul style="font-size:12px;color:var(--muted);line-height:1.8;list-style:none;padding:0">
+                <li>• Konten seri/episode</li>
+                <li>• Kolaborasi kreator</li>
+                <li>• Shopee Video affiliate</li>
+                <li>• IG Carousel edukasi</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: TRENDING -->
+    <div class="page" id="page-trending">
+      <div style="margin-bottom:24px;display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <p style="font-size:13px;color:var(--muted);margin-bottom:2px">Update otomatis setiap hari</p>
+          <h2 style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800">Trending Intelligence</h2>
+        </div>
+        <span class="badge badge-accent">🔴 Live Update</span>
+      </div>
+
+      <div class="grid-2" style="margin-bottom:20px">
+        <div class="card">
+          <p class="card-title">🔥 Trending Formats Hari Ini</p>
+          <p class="card-subtitle">Format yang sedang viral di TikTok & IG Indonesia</p>
+
+          <div class="trend-card">
+            <span class="trend-icon">🎭</span>
+            <div>
+              <p class="trend-title">POV Storytelling</p>
+              <p class="trend-desc">Hook "POV: kamu..." sedang viral dengan rata-rata 2-5x views normal. Cocok untuk niche kamu.</p>
+              <span class="badge badge-accent" style="margin-top:6px">🔥 Sangat Trending</span>
+            </div>
+          </div>
+
+          <div class="trend-card">
+            <span class="trend-icon">⚡</span>
+            <div>
+              <p class="trend-title">Rating Jujur 1-10</p>
+              <p class="trend-desc">Format rating produk/pengalaman 1-10. Engagement comment sangat tinggi karena diskusi.</p>
+              <span class="badge badge-purple" style="margin-top:6px">📈 Naik</span>
+            </div>
+          </div>
+
+          <div class="trend-card">
+            <span class="trend-icon">🤝</span>
+            <div>
+              <p class="trend-title">Before & After Transformation</p>
+              <p class="trend-desc">Transformasi outfit, konten, mindset. Save rate sangat tinggi di segmen ibu muda.</p>
+              <span class="badge badge-gold" style="margin-top:6px">⭐ Stabil Tinggi</span>
+            </div>
+          </div>
+
+          <div class="trend-card">
+            <span class="trend-icon">🎙️</span>
+            <div>
+              <p class="trend-title">Voiceover B-Roll</p>
+              <p class="trend-desc">Video aesthetic dengan voiceover. Cocok untuk faceless creator. Watch time rata-rata 85%.</p>
+              <span class="badge badge-purple" style="margin-top:6px">📈 Naik</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <p class="card-title">✦ Adaptasi untuk Niche Kamu</p>
+          <p class="card-subtitle">AI menyesuaikan trending dengan Fashion & Lifestyle niche kamu</p>
+
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div style="background:var(--surface2);border-radius:10px;padding:14px">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                <p style="font-size:12px;font-weight:700;color:var(--accent)">Trending: POV</p>
+                <span class="badge badge-accent">Adaptasi Kamu</span>
+              </div>
+              <p style="font-size:13px;font-weight:600;color:var(--text)">"POV: Kamu beli baju Rp500rb tapi ternyata bisa dapet yang sama di marketplace Rp150rb 😱"</p>
+            </div>
+
+            <div style="background:var(--surface2);border-radius:10px;padding:14px">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                <p style="font-size:12px;font-weight:700;color:var(--accent2)">Trending: Rating</p>
+                <span class="badge badge-purple">Adaptasi Kamu</span>
+              </div>
+              <p style="font-size:13px;font-weight:600;color:var(--text)">"Aku rating 10 brand fashion lokal yang sering direkomendasikan — hasilnya bikin kaget!"</p>
+            </div>
+
+            <div style="background:var(--surface2);border-radius:10px;padding:14px">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+                <p style="font-size:12px;font-weight:700;color:var(--gold)">Trending: Before/After</p>
+                <span class="badge badge-gold">Adaptasi Kamu</span>
+              </div>
+              <p style="font-size:13px;font-weight:600;color:var(--text)">"Before: Outfit ibu rumah tangga yang boring. After: Sama orangnya, beda stylanya ✨"</p>
+            </div>
+
+            <button class="btn btn-primary" style="width:100%;justify-content:center;margin-top:4px" onclick="generateFromTrend()">✦ Generate Konten dari Trend Ini</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <p class="card-title">📌 Trending Hooks Library</p>
+        <p class="card-subtitle">Hook template yang sedang bekerja minggu ini — klik untuk adaptasi</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px">
+          <div class="content-card" style="border:1px solid var(--border);cursor:pointer" onclick="adaptHook(this)">
+            <p style="font-size:12px;font-weight:600;color:var(--text)">"Ini yang gak diajarkan orang tentang [TOPIK]"</p>
+          </div>
+          <div class="content-card" style="border:1px solid var(--border);cursor:pointer" onclick="adaptHook(this)">
+            <p style="font-size:12px;font-weight:600;color:var(--text)">"Salah satu keputusan terbaik aku: [KEPUTUSAN]"</p>
+          </div>
+          <div class="content-card" style="border:1px solid var(--border);cursor:pointer" onclick="adaptHook(this)">
+            <p style="font-size:12px;font-weight:600;color:var(--text)">"Kalau aku tau ini lebih awal, aku gak akan [KESALAHAN]"</p>
+          </div>
+          <div class="content-card" style="border:1px solid var(--border);cursor:pointer" onclick="adaptHook(this)">
+            <p style="font-size:12px;font-weight:600;color:var(--text)">"Nonton ini 3 detik aja, dijamin relate"</p>
+          </div>
+          <div class="content-card" style="border:1px solid var(--border);cursor:pointer" onclick="adaptHook(this)">
+            <p style="font-size:12px;font-weight:600;color:var(--text)">"Aku nemu ini dan gak bisa percaya harganya [HARGA]"</p>
+          </div>
+          <div class="content-card" style="border:1px solid var(--border);cursor:pointer" onclick="adaptHook(this)">
+            <p style="font-size:12px;font-weight:600;color:var(--text)">"Rating jujur [PRODUK] setelah 30 hari pakai"</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: COMPETITOR -->
+    <div class="page" id="page-competitor">
+      <div style="margin-bottom:24px">
+        <h2 style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800">Analisis Kompetitor</h2>
+      </div>
+
+      <div class="card" style="margin-bottom:20px">
+        <p class="card-title">🔍 Tambah Kompetitor</p>
+        <p class="card-subtitle">Masukkan username akun kompetitor untuk dianalisis AI</p>
+        <div style="display:flex;gap:10px;align-items:flex-end">
+          <div class="input-group" style="flex:1;margin-bottom:0">
+            <label class="input-label">Username / URL Akun</label>
+            <input class="input" id="compInput" placeholder="@username atau URL TikTok/Instagram" />
+          </div>
+          <div class="input-group" style="margin-bottom:0">
+            <label class="input-label">Platform</label>
+            <select class="select" style="width:auto">
+              <option>TikTok</option>
+              <option>Instagram</option>
+              <option>YouTube</option>
+            </select>
+          </div>
+          <button class="btn btn-primary" onclick="analyzeCompetitor()">🔍 Analisis</button>
+        </div>
+        <div id="compResult" style="margin-top:16px;display:none">
+          <div class="ai-block">
+            <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:16px">
+              <div>
+                <p style="font-size:11px;color:var(--muted);margin-bottom:4px">Why They Grow</p>
+                <p style="font-size:13px;font-weight:600;color:var(--text)">Konsisten posting 2x/hari + kolaborasi rutin</p>
+              </div>
+              <div>
+                <p style="font-size:11px;color:var(--muted);margin-bottom:4px">What Works</p>
+                <p style="font-size:13px;font-weight:600;color:var(--text)">Format tutorial singkat 30-45 detik</p>
+              </div>
+              <div>
+                <p style="font-size:11px;color:var(--muted);margin-bottom:4px">Your Opportunity Gap</p>
+                <p style="font-size:13px;font-weight:600;color:var(--accent)">Konten review jujur belum dimaksimalkan</p>
+              </div>
+            </div>
+            <p style="font-size:12px;color:var(--muted);line-height:1.6"><strong style="color:var(--text)">Rekomendasi:</strong> Competitor ini lemah di konten storytelling personal. Kamu bisa diferensiasi dengan memperbanyak konten relatable & authentic — sesuatu yang tidak mereka lakukan.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <p class="card-title">📊 Kompetitor yang Dipantau</p>
+        <p class="card-subtitle">3 akun aktif dalam watchlist kamu</p>
+        <div class="comp-row">
+          <div class="comp-rank">1</div>
+          <div class="comp-info">
+            <p class="comp-name">@fashionbymaya</p>
+            <p class="comp-stat">TikTok · 124K followers · 9.2% ER</p>
+          </div>
+          <div>
+            <p style="font-size:10px;color:var(--muted);text-align:right;margin-bottom:2px">Gap Score</p>
+            <p class="comp-score">+67</p>
+          </div>
+        </div>
+        <div class="comp-row">
+          <div class="comp-rank">2</div>
+          <div class="comp-info">
+            <p class="comp-name">@stylewithputri</p>
+            <p class="comp-stat">Instagram · 89K followers · 7.8% ER</p>
+          </div>
+          <div>
+            <p style="font-size:10px;color:var(--muted);text-align:right;margin-bottom:2px">Gap Score</p>
+            <p class="comp-score" style="color:var(--gold)">+42</p>
+          </div>
+        </div>
+        <div class="comp-row">
+          <div class="comp-rank">3</div>
+          <div class="comp-info">
+            <p class="comp-name">@outfitideasid</p>
+            <p class="comp-stat">TikTok · 56K followers · 11.4% ER</p>
+          </div>
+          <div>
+            <p style="font-size:10px;color:var(--muted);text-align:right;margin-bottom:2px">Gap Score</p>
+            <p class="comp-score" style="color:var(--accent3)">+18</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: STRATEGY -->
+    <div class="page" id="page-strategy">
+      <div style="margin-bottom:24px;display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <p style="font-size:13px;color:var(--muted);margin-bottom:2px">Minggu 3 — April 2026</p>
+          <h2 style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800">Strategi Mingguan</h2>
+        </div>
+        <button class="btn btn-primary" onclick="generateWeeklyStrategy()">✦ Generate Strategi Baru</button>
+      </div>
+
+      <div class="grid-2" style="margin-bottom:20px">
+        <div class="card">
+          <p class="card-title">🎯 Fokus Minggu Ini</p>
+          <p class="card-subtitle">AI recommendation berdasarkan fase growth kamu</p>
+          <div style="display:flex;flex-direction:column;gap:10px">
+            <div class="week-item">
+              <span class="week-icon">🚀</span>
+              <div>
+                <p class="week-title">Tingkatkan frekuensi POV content</p>
+                <p class="week-detail">Target: 3 dari 5 konten minggu ini pakai format POV</p>
+              </div>
+            </div>
+            <div class="week-item">
+              <span class="week-icon">⏰</span>
+              <div>
+                <p class="week-title">Konsisten upload jam 19.00 - 20.00</p>
+                <p class="week-detail">Data shows 40% higher reach di jam ini untuk audience kamu</p>
+              </div>
+            </div>
+            <div class="week-item">
+              <span class="week-icon">🎬</span>
+              <div>
+                <p class="week-title">Buat 1 konten edukasi seri</p>
+                <p class="week-detail">Mulai series "Panduan Style Ibu Muda" — 5 part, upload 2x/minggu</p>
+              </div>
+            </div>
+            <div class="week-item">
+              <span class="week-icon">💬</span>
+              <div>
+                <p class="week-title">Engage 30 menit per hari</p>
+                <p class="week-detail">Reply comment, duet 1 konten kreator lain, follow-back aktif</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div style="margin-bottom:20px">
+            <p class="card-title">❌ Apa yang Harus Distop</p>
+            <p class="card-subtitle">Berdasarkan analisis data minggu lalu</p>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="background:rgba(255,107,107,0.06);border:1px solid rgba(255,107,107,0.15);border-radius:8px;padding:12px">
+                <p style="font-size:13px;font-weight:600;color:var(--accent3)">Video >2 menit</p>
+                <p style="font-size:12px;color:var(--muted);margin-top:3px">Completion rate hanya 12%. Audience kamu prefer konten singkat & padat.</p>
+              </div>
+              <div style="background:rgba(255,107,107,0.06);border:1px solid rgba(255,107,107,0.15);border-radius:8px;padding:12px">
+                <p style="font-size:13px;font-weight:600;color:var(--accent3)">Upload tanpa caption lengkap</p>
+                <p style="font-size:12px;color:var(--muted);margin-top:3px">Caption & hashtag yang optimal meningkatkan reach rata-rata 35%.</p>
+              </div>
+            </div>
+          </div>
+
+          <div>
+            <p class="card-title">✨ Apa yang Perlu Ditingkatkan</p>
+            <p class="card-subtitle">Peluang growth yang belum dimaksimalkan</p>
+            <div style="display:flex;flex-direction:column;gap:8px">
+              <div style="background:rgba(123,97,255,0.06);border:1px solid rgba(123,97,255,0.15);border-radius:8px;padding:12px">
+                <p style="font-size:13px;font-weight:600;color:#a392ff">CTA di setiap video</p>
+                <p style="font-size:12px;color:var(--muted);margin-top:3px">Hanya 40% kontenmu punya CTA jelas. Target 100% minggu ini.</p>
+              </div>
+              <div style="background:rgba(123,97,255,0.06);border:1px solid rgba(123,97,255,0.15);border-radius:8px;padding:12px">
+                <p style="font-size:13px;font-weight:600;color:#a392ff">Cross-posting ke IG Reels</p>
+                <p style="font-size:12px;color:var(--muted);margin-top:3px">Konten TikTok kamu bisa di-repurpose ke IG tanpa effort tambahan.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <p class="card-title">📅 Content Calendar Mingguan</p>
+        <p class="card-subtitle">Rencana konten yang sudah di-optimasi AI untuk minggu ini</p>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px">
+          <div style="text-align:center">
+            <p style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:8px">SEN</p>
+            <div style="background:rgba(200,255,62,0.08);border:1px solid rgba(200,255,62,0.2);border-radius:8px;padding:8px">
+              <p style="font-size:10px;color:var(--accent);font-weight:600;margin-bottom:4px">POV</p>
+              <p style="font-size:10px;color:var(--muted)">Produk salah pilih</p>
+            </div>
+          </div>
+          <div style="text-align:center">
+            <p style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:8px">SEL</p>
+            <div style="background:var(--surface2);border-radius:8px;padding:8px;border:1px solid var(--border)">
+              <p style="font-size:10px;color:var(--muted);font-weight:600;margin-bottom:4px">REST</p>
+              <p style="font-size:10px;color:var(--muted)">Istirahat</p>
+            </div>
+          </div>
+          <div style="text-align:center">
+            <p style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:8px">RAB</p>
+            <div style="background:rgba(123,97,255,0.08);border:1px solid rgba(123,97,255,0.2);border-radius:8px;padding:8px">
+              <p style="font-size:10px;color:#a392ff;font-weight:600;margin-bottom:4px">EDUKASI</p>
+              <p style="font-size:10px;color:var(--muted)">Tips style #1</p>
+            </div>
+          </div>
+          <div style="text-align:center">
+            <p style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:8px">KAM</p>
+            <div style="background:rgba(200,255,62,0.08);border:1px solid rgba(200,255,62,0.2);border-radius:8px;padding:8px">
+              <p style="font-size:10px;color:var(--accent);font-weight:600;margin-bottom:4px">POV</p>
+              <p style="font-size:10px;color:var(--muted)">Budget outfit</p>
+            </div>
+          </div>
+          <div style="text-align:center">
+            <p style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:8px">JUM</p>
+            <div style="background:rgba(245,200,66,0.08);border:1px solid rgba(245,200,66,0.2);border-radius:8px;padding:8px">
+              <p style="font-size:10px;color:var(--gold);font-weight:600;margin-bottom:4px">REVIEW</p>
+              <p style="font-size:10px;color:var(--muted)">Brand lokal</p>
+            </div>
+          </div>
+          <div style="text-align:center">
+            <p style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:8px">SAB</p>
+            <div style="background:var(--surface2);border-radius:8px;padding:8px;border:1px solid var(--border)">
+              <p style="font-size:10px;color:var(--muted);font-weight:600;margin-bottom:4px">REST</p>
+              <p style="font-size:10px;color:var(--muted)">Istirahat</p>
+            </div>
+          </div>
+          <div style="text-align:center">
+            <p style="font-size:11px;font-weight:700;color:var(--muted);margin-bottom:8px">MIN</p>
+            <div style="background:rgba(123,97,255,0.08);border:1px solid rgba(123,97,255,0.2);border-radius:8px;padding:8px">
+              <p style="font-size:10px;color:#a392ff;font-weight:600;margin-bottom:4px">EDUKASI</p>
+              <p style="font-size:10px;color:var(--muted)">Tips style #2</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: STREAK -->
+    <div class="page" id="page-streak">
+      <div style="margin-bottom:24px">
+        <h2 style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800">Streak & Achievement</h2>
+      </div>
+
+      <div class="grid-2" style="margin-bottom:20px">
+        <div class="card" style="text-align:center;padding:32px">
+          <p style="font-size:60px;margin-bottom:8px">🔥</p>
+          <p style="font-family:'Syne',sans-serif;font-size:56px;font-weight:800;color:var(--accent);line-height:1">14</p>
+          <p style="font-size:14px;color:var(--muted);margin-top:4px">Hari Posting Berturut-turut</p>
+          <div class="divider"></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px">
+            <div>
+              <p style="font-family:'Syne',sans-serif;font-size:22px;font-weight:700;color:var(--text)">18</p>
+              <p style="font-size:11px;color:var(--muted)">Bulan Ini</p>
+            </div>
+            <div>
+              <p style="font-family:'Syne',sans-serif;font-size:22px;font-weight:700;color:var(--text)">56</p>
+              <p style="font-size:11px;color:var(--muted)">Total Konten</p>
+            </div>
+            <div>
+              <p style="font-family:'Syne',sans-serif;font-size:22px;font-weight:700;color:var(--text)">21</p>
+              <p style="font-size:11px;color:var(--muted)">Best Streak</p>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <p class="card-title">📅 Kalender Posting (April)</p>
+          <p class="card-subtitle">Histori konsistensi posting kamu</p>
+          <div class="streak-grid" id="streakGrid"></div>
+          <div style="display:flex;gap:12px;margin-top:12px">
+            <div style="display:flex;align-items:center;gap:6px">
+              <div style="width:12px;height:12px;border-radius:3px;background:var(--accent)"></div>
+              <span style="font-size:11px;color:var(--muted)">Posted</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px">
+              <div style="width:12px;height:12px;border-radius:3px;background:rgba(200,255,62,0.35)"></div>
+              <span style="font-size:11px;color:var(--muted)">Partial</span>
+            </div>
+            <div style="display:flex;align-items:center;gap:6px">
+              <div style="width:12px;height:12px;border-radius:3px;background:var(--surface2)"></div>
+              <span style="font-size:11px;color:var(--muted)">Missed</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <p class="card-title">🏆 Badges & Achievements</p>
+        <p class="card-subtitle">Kamu telah unlock 6 dari 20 badges</p>
+        <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px">
+          <div style="text-align:center;padding:16px;background:rgba(200,255,62,0.08);border:1px solid rgba(200,255,62,0.2);border-radius:12px">
+            <p style="font-size:32px">🌱</p>
+            <p style="font-size:11px;font-weight:600;color:var(--accent);margin-top:6px">First Post</p>
+            <p style="font-size:10px;color:var(--muted)">Unlocked</p>
+          </div>
+          <div style="text-align:center;padding:16px;background:rgba(200,255,62,0.08);border:1px solid rgba(200,255,62,0.2);border-radius:12px">
+            <p style="font-size:32px">🔥</p>
+            <p style="font-size:11px;font-weight:600;color:var(--accent);margin-top:6px">7-Day Streak</p>
+            <p style="font-size:10px;color:var(--muted)">Unlocked</p>
+          </div>
+          <div style="text-align:center;padding:16px;background:rgba(200,255,62,0.08);border:1px solid rgba(200,255,62,0.2);border-radius:12px">
+            <p style="font-size:32px">⚡</p>
+            <p style="font-size:11px;font-weight:600;color:var(--accent);margin-top:6px">14-Day Streak</p>
+            <p style="font-size:10px;color:var(--muted)">Unlocked</p>
+          </div>
+          <div style="text-align:center;padding:16px;background:rgba(200,255,62,0.08);border:1px solid rgba(200,255,62,0.2);border-radius:12px">
+            <p style="font-size:32px">📈</p>
+            <p style="font-size:11px;font-weight:600;color:var(--accent);margin-top:6px">10K Views</p>
+            <p style="font-size:10px;color:var(--muted)">Unlocked</p>
+          </div>
+          <div style="text-align:center;padding:16px;background:rgba(200,255,62,0.08);border:1px solid rgba(200,255,62,0.2);border-radius:12px">
+            <p style="font-size:32px">🎯</p>
+            <p style="font-size:11px;font-weight:600;color:var(--accent);margin-top:6px">100K Views</p>
+            <p style="font-size:10px;color:var(--muted)">Unlocked</p>
+          </div>
+          <div style="text-align:center;padding:16px;background:rgba(245,200,66,0.08);border:1px solid rgba(245,200,66,0.2);border-radius:12px">
+            <p style="font-size:32px">👑</p>
+            <p style="font-size:11px;font-weight:600;color:var(--gold);margin-top:6px">First Sale</p>
+            <p style="font-size:10px;color:var(--muted)">Unlocked</p>
+          </div>
+          <div style="text-align:center;padding:16px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;opacity:0.5">
+            <p style="font-size:32px">🌟</p>
+            <p style="font-size:11px;font-weight:600;color:var(--muted);margin-top:6px">30-Day Streak</p>
+            <p style="font-size:10px;color:var(--muted)">16 hari lagi</p>
+          </div>
+          <div style="text-align:center;padding:16px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;opacity:0.5">
+            <p style="font-size:32px">💎</p>
+            <p style="font-size:11px;font-weight:600;color:var(--muted);margin-top:6px">1M Views</p>
+            <p style="font-size:10px;color:var(--muted)">Locked</p>
+          </div>
+          <div style="text-align:center;padding:16px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;opacity:0.5">
+            <p style="font-size:32px">🤝</p>
+            <p style="font-size:11px;font-weight:600;color:var(--muted);margin-top:6px">Collaborator</p>
+            <p style="font-size:10px;color:var(--muted)">Locked</p>
+          </div>
+          <div style="text-align:center;padding:16px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;opacity:0.5">
+            <p style="font-size:32px">🏆</p>
+            <p style="font-size:11px;font-weight:600;color:var(--muted);margin-top:6px">Authority</p>
+            <p style="font-size:10px;color:var(--muted)">Locked</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAGE: EVOLUTION -->
+    <div class="page" id="page-evolution">
+      <div style="margin-bottom:24px">
+        <h2 style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800">Creator Evolution Engine</h2>
+        <p style="font-size:13px;color:var(--muted);margin-top:4px">AI terus mengevolusi niche, positioning, dan arah konten kamu seiring waktu</p>
+      </div>
+
+      <div class="card" style="margin-bottom:20px;background:linear-gradient(135deg,rgba(123,97,255,0.08),rgba(200,255,62,0.04));border-color:rgba(123,97,255,0.2)">
+        <p class="card-title" style="font-size:16px">🌱 → 👑 Peta Evolusi Creator Kamu</p>
+        <p class="card-subtitle">AI akan terus memperbarui arah ini berdasarkan data dan pertumbuhanmu</p>
+        <div style="display:flex;flex-direction:column;gap:0">
+          <div style="display:flex;gap:16px;align-items:flex-start;padding:16px;background:rgba(200,255,62,0.06);border-radius:10px;margin-bottom:4px;border:1px solid rgba(200,255,62,0.15)">
+            <span style="font-size:24px;flex-shrink:0">✅</span>
+            <div>
+              <p style="font-size:12px;color:var(--accent);font-weight:700;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px">Phase 1 — Done</p>
+              <p style="font-size:14px;font-weight:600;color:var(--text)">Content Creator Pemula</p>
+              <p style="font-size:12px;color:var(--muted);margin-top:3px">Bangun konsistensi, temukan niche, mulai audience. ✓ Selesai dalam 45 hari</p>
+            </div>
+          </div>
+          <div style="width:2px;height:20px;background:linear-gradient(var(--accent),var(--accent2));margin-left:36px"></div>
+          <div style="display:flex;gap:16px;align-items:flex-start;padding:16px;background:rgba(123,97,255,0.08);border-radius:10px;margin-bottom:4px;border:2px solid var(--accent2)">
+            <span style="font-size:24px;flex-shrink:0">⚡</span>
+            <div>
+              <p style="font-size:12px;color:var(--accent2);font-weight:700;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px">Phase 2 — Sekarang</p>
+              <p style="font-size:14px;font-weight:600;color:var(--text)">Growing Creator — Fashion Specialist</p>
+              <p style="font-size:12px;color:var(--muted);margin-top:3px">Bangun authority di niche fashion lokal, tingkatkan engagement, mulai monetisasi awal</p>
+              <div style="margin-top:10px">
+                <div style="display:flex;justify-content:space-between;margin-bottom:4px"><span style="font-size:11px;color:var(--muted)">Progress</span><span style="font-size:11px;color:var(--accent2)">67%</span></div>
+                <div class="progress-wrap"><div class="progress-bar progress-purple" style="width:67%"></div></div>
+              </div>
+            </div>
+          </div>
+          <div style="width:2px;height:20px;background:var(--border);margin-left:36px"></div>
+          <div style="display:flex;gap:16px;align-items:flex-start;padding:16px;background:var(--surface2);border-radius:10px;margin-bottom:4px;opacity:0.7">
+            <span style="font-size:24px;flex-shrink:0">🎯</span>
+            <div>
+              <p style="font-size:12px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px">Phase 3 — Selanjutnya</p>
+              <p style="font-size:14px;font-weight:600;color:var(--text)">Authority Creator — Fashion Educator</p>
+              <p style="font-size:12px;color:var(--muted);margin-top:3px">Dikenal sebagai referensi fashion untuk ibu muda. Kolaborasi brand, speaking, workshop.</p>
+            </div>
+          </div>
+          <div style="width:2px;height:20px;background:var(--border);margin-left:36px"></div>
+          <div style="display:flex;gap:16px;align-items:flex-start;padding:16px;background:var(--surface2);border-radius:10px;opacity:0.5">
+            <span style="font-size:24px;flex-shrink:0">👑</span>
+            <div>
+              <p style="font-size:12px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:4px">Phase 4 — Tujuan Akhir</p>
+              <p style="font-size:14px;font-weight:600;color:var(--text)">Fashion Influencer & Brand Owner</p>
+              <p style="font-size:12px;color:var(--muted);margin-top:3px">Launch produk sendiri, paid partnership tier premium, build personal brand empire.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <p class="card-title">✦ AI Evolution Suggestion</p>
+          <p class="card-subtitle">Rekomendasi evolusi positioning berdasarkan 60 hari data</p>
+          <div class="ai-block">
+            <p style="font-size:13px;line-height:1.7;color:var(--text)">Berdasarkan data audience dan engagement kamu, <strong>micro-niche terbaik yang perlu difokuskan</strong> adalah: <span style="color:var(--accent)">"Fashion Budget Cerdas untuk Ibu Kerja"</span>.<br><br>Audience kamu paling responsif terhadap konten yang menggabungkan <strong>value finansial + estetika</strong>. Ini adalah gap yang belum dimaksimalkan kompetitor kamu.</p>
+          </div>
+        </div>
+
+        <div class="card">
+          <p class="card-title">📡 Niche Evolution Timeline</p>
+          <p class="card-subtitle">Kapan AI merekomendasikan pergeseran niche</p>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <div style="background:var(--surface2);border-radius:8px;padding:12px;display:flex;gap:10px;align-items:center">
+              <span style="font-size:16px">✅</span>
+              <div><p style="font-size:12px;font-weight:600;color:var(--text)">Fashion Umum → Fashion Ibu Muda</p><p style="font-size:11px;color:var(--muted)">Feb 2026 · Niche spesifik naik 3x reach</p></div>
+            </div>
+            <div style="background:rgba(200,255,62,0.06);border:1px solid rgba(200,255,62,0.2);border-radius:8px;padding:12px;display:flex;gap:10px;align-items:center">
+              <span style="font-size:16px">⚡</span>
+              <div><p style="font-size:12px;font-weight:600;color:var(--accent)">Fashion Ibu Muda → Fashion Budget Cerdas</p><p style="font-size:11px;color:var(--muted)">Target: Juni 2026 · AI prediksi 2.5x growth</p></div>
+            </div>
+            <div style="background:var(--surface2);border-radius:8px;padding:12px;display:flex;gap:10px;align-items:center;opacity:0.6">
+              <span style="font-size:16px">🔮</span>
+              <div><p style="font-size:12px;font-weight:600;color:var(--text)">Fashion Educator + Brand Konsultasi</p><p style="font-size:11px;color:var(--muted)">Prediksi: Q4 2026 · Monetisasi premium</p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<script>
+// ===== STATE =====
+let currentStep = 1;
+let totalSteps = 4;
+let userData = {
+  brand: 'StyleBy Rani',
+  niche: 'Fashion Hijab',
+  name: 'Rani'
+};
+
+// ===== WELCOME =====
+function startOnboarding() {
+  document.getElementById('onboardOverlay').classList.add('open');
+  renderStepIndicator();
+}
+
+function enterApp() {
+  document.getElementById('welcome').style.display = 'none';
+  document.getElementById('mainApp').style.display = 'flex';
+  buildStreakGrid();
+}
+
+// ===== ONBOARDING =====
+function renderStepIndicator() {
+  const ind = document.getElementById('stepIndicator');
+  ind.innerHTML = '';
+  for (let i = 1; i <= totalSteps; i++) {
+    const d = document.createElement('div');
+    d.className = 'step-dot' + (i < currentStep ? ' done' : i === currentStep ? ' current' : '');
+    ind.appendChild(d);
+  }
+}
+
+function nextStep(from) {
+  if (from === 1) {
+    userData.brand = document.getElementById('ob_brand').value || 'My Brand';
+    userData.niche = document.getElementById('ob_niche').value || 'Lifestyle';
+    userData.name = userData.brand.split(' ')[0];
+  }
+
+  document.getElementById('step' + from).classList.remove('active');
+  currentStep = from + 1;
+  document.getElementById('step' + currentStep).classList.add('active');
+  renderStepIndicator();
+
+  if (currentStep === 4) {
+    setTimeout(showIdentityResult, 800);
+  }
+}
+
+function showIdentityResult() {
+  const niche = userData.niche || 'Lifestyle';
+  const positioning = `Specialist dalam konten edukasi ${niche} yang relatable dan bernilai tinggi untuk audience Indonesia`;
+
+  document.getElementById('identityResult').innerHTML = `
+    <p style="font-size:16px;font-weight:700;font-family:'Syne',sans-serif;color:var(--text);line-height:1.4">"${positioning}"</p>
+    <p style="font-size:12px;color:var(--muted);margin-top:8px">Creator Type: Face + Voice · Platform: TikTok + Instagram · Goal: Sales & Authority</p>
+  `;
+
+  const pillars = document.getElementById('pillarsResult');
+  const pillarNames = ['Tips & Tutorial', 'Review Jujur', 'Behind the Scene', 'Edukasi Niche', 'Personal Story'];
+  pillars.innerHTML = '';
+  pillarNames.forEach(p => {
+    const span = document.createElement('span');
+    span.className = 'badge badge-purple';
+    span.textContent = p;
+    pillars.appendChild(span);
+  });
+}
+
+function finishOnboarding() {
+  document.getElementById('onboardOverlay').classList.remove('open');
+  document.getElementById('welcome').style.display = 'none';
+  document.getElementById('mainApp').style.display = 'flex';
+  document.getElementById('sideUserName').textContent = userData.brand;
+  document.getElementById('sideAvatar').textContent = userData.brand[0].toUpperCase();
+  document.getElementById('positioningText').textContent = `Specialist dalam konten edukasi ${userData.niche} yang relatable untuk ibu muda modern Indonesia`;
+  document.getElementById('dashGreeting').textContent = `${userData.brand}, siap bikin konten hari ini?`;
+  buildStreakGrid();
+}
+
+// ===== NAVIGATION =====
+function showPage(id, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  if (el) el.classList.add('active');
+
+  const titles = {
+    dashboard: 'Dashboard',
+    daily: 'Rencana Harian',
+    identity: 'Creator Identity',
+    performance: 'Analitik Performa',
+    trending: 'Trending Intelligence',
+    competitor: 'Analisis Kompetitor',
+    strategy: 'Strategi Mingguan',
+    streak: 'Streak & Badges',
+    evolution: 'Creator Evolution'
+  };
+  document.getElementById('pageTitle').textContent = titles[id] || id;
+  window.scrollTo(0, 0);
+}
+
+// ===== MODALS =====
+function openModal(id) {
+  document.getElementById(id).classList.add('open');
+  if (id === 'contentModal') {
+    openContentModal('AI Content Generator', 'Pilih topik lalu generate');
+  }
+}
+
+function closeModal(id) {
+  document.getElementById(id).classList.remove('open');
+}
+
+function openContentModal(hook, meta) {
+  document.getElementById('modalHook').textContent = hook;
+  document.getElementById('modalMeta').textContent = meta;
+
+  const captions = [
+    `Kalau ini relate, comment "aku" 👇\n\nBukan lebay tapi ini literally terjadi dan bikin aku mikir ulang cara belanja.\n\n[Cerita singkat 3-4 kalimat]\n\nSave ini buat pengingat ya! 📌`,
+    `Sebelum scroll, tanya diri kamu:\nsudah pernah ngalamin ini? 🤔\n\n[Isi konten]\n\nShare ke temen yang butuh tau ini! ❤️`,
+    `Ini yang aku pelajari setelah [pengalaman]:\n\n✅ [Tip 1]\n✅ [Tip 2]  \n✅ [Tip 3]\n\nSimpan sebelum lupa! 🔖`
+  ];
+
+  document.getElementById('modalBody').innerHTML = `
+    <div style="margin-bottom:16px">
+      <p style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">Caption Template</p>
+      <div class="ai-block" style="font-size:13px;line-height:1.7;white-space:pre-line;color:var(--text)">${captions[Math.floor(Math.random()*captions.length)]}</div>
+    </div>
+    <div style="margin-bottom:16px">
+      <p style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">Hashtag</p>
+      <div style="display:flex;flex-wrap:wrap;gap:6px">
+        ${['#fashionlokal', '#tipsfashion', '#outfitoftheday', '#ibumuda', '#styleindo', '#fashionhijab', '#ootdindo', '#reviewjujur'].map(h=>`<span class="badge badge-purple">${h}</span>`).join('')}
+      </div>
+    </div>
+    <div>
+      <p style="font-size:12px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px">CTA Suggestion</p>
+      <div style="display:flex;flex-wrap:wrap;gap:8px">
+        <span class="tag sel">💬 Comment "aku" kalau relate</span>
+        <span class="tag">📌 Save untuk nanti</span>
+        <span class="tag">🔗 Link di bio</span>
+      </div>
+    </div>
+  `;
+  document.getElementById('contentModal').classList.add('open');
+}
+
+// ===== AI FUNCTIONS =====
+function generateCaption() {
+  const topic = document.getElementById('captionInput').value || 'fashion tips';
+  const tone = document.getElementById('captionTone').value;
+
+  document.getElementById('captionResult').style.display = 'block';
+
+  const captions = {
+    'Friendly & Relatable': `Jujur, aku juga pernah salah pilih tentang ${topic} 😅\n\nTapi setelah belajar dari pengalaman, ini yang aku temukan...\n\n[Isi konten kamu di sini]\n\nComment "relate" kalau kamu juga pernah ngalamin ini! 👇`,
+    'Bold & Direct': `STOP! Jangan lakukan ini kalau soal ${topic} ⚠️\n\nBanyak yang salah kaprah dan rugi jutaan.\n\n[Penjelasan langsung]\n\nShare sebelum teman kamu ikut salah! 🔥`,
+    'Educational': `📚 PANDUAN LENGKAP: ${topic}\n\nIni yang perlu kamu tau:\n✅ Poin 1\n✅ Poin 2\n✅ Poin 3\n\nSave & bookmark untuk referensi! 📌`,
+    'Storytelling': `Cerita ini bikin aku sadar tentang ${topic}...\n\nWaktu itu aku tidak tau sama sekali, sampai akhirnya [kejadian].\n\nDan sekarang aku mau share apa yang aku pelajari 💛`,
+    'Premium': `${topic} bukan tentang mahal atau murah.\n\nIni tentang memilih yang benar-benar sesuai dengan value kamu.\n\n[Insight premium]\n\nLink di bio untuk info lebih lanjut ✨`
+  };
+
+  document.getElementById('captionText').textContent = captions[tone] || captions['Friendly & Relatable'];
+
+  const tags = ['#' + topic.replace(/\s/g,'').toLowerCase(), '#tipslokal', '#fashionindo', '#creatorindonesia', '#kontenkreatif', '#ibumuda'];
+  document.getElementById('hashtagResult').innerHTML = tags.map(t => `<span class="badge badge-purple">${t}</span>`).join('');
+}
+
+function generateDailyContent() {
+  const hooks = [
+    'Things they dont tell you soal jadi creator pemula di Indonesia',
+    'Aku habis 6 bulan untuk discover ini — sekarang aku share gratis ke kamu',
+    'Kenapa 90% creator Indonesia stuck di bawah 10K followers (dan cara keluar dari situ)',
+    'Ini yang aku ubah dan langsung bikin views naik 3x dalam seminggu'
+  ];
+  alert('✦ Generating 3 konten baru dengan AI...\n\n' + hooks[Math.floor(Math.random()*hooks.length)]);
+}
+
+function analyzePerformance() {
+  document.getElementById('perfResult').style.display = 'block';
+}
+
+function analyzeCompetitor() {
+  const val = document.getElementById('compInput').value;
+  if (!val) { alert('Masukkan username kompetitor terlebih dahulu'); return; }
+  document.getElementById('compResult').style.display = 'block';
+}
+
+function generateWeeklyStrategy() {
+  alert('✦ AI sedang generate strategi minggu baru berdasarkan data performa kamu...');
+}
+
+function generateFromTrend() {
+  openContentModal(
+    'Aku rating 10 brand fashion lokal yang sering direkomendasikan — hasilnya bikin kaget!',
+    'TikTok · Review · 45-75 detik'
+  );
+}
+
+function regenerateContent() {
+  const hooks = [
+    'Rahasia yang gak diajarkan di sekolah tentang style budget',
+    'Ini kenapa outfit mahal gak selalu bikin keliatan mewah',
+    'Cara styling 1 item jadi 5 look berbeda (budget 0 rupiah!)'
+  ];
+  document.getElementById('modalHook').textContent = hooks[Math.floor(Math.random()*hooks.length)];
+}
+
+function adaptHook(el) {
+  const hook = el.querySelector('p').textContent;
+  openContentModal(hook.replace('[TOPIK]', userData.niche).replace('[KEPUTUSAN]', `belajar tentang ${userData.niche}`).replace('[KESALAHAN]', `salah pilih produk`).replace('[HARGA]', 'Rp50.000').replace('[PRODUK]', userData.niche), 'TikTok · Hook Template · 30-60 detik');
+}
+
+// ===== TAGS =====
+function toggleTag(el) {
+  el.classList.toggle('sel');
+}
+
+function singleTag(el, groupId) {
+  document.querySelectorAll('#' + groupId + ' .tag').forEach(t => t.classList.remove('sel'));
+  el.classList.add('sel');
+}
+
+// ===== STREAK GRID =====
+function buildStreakGrid() {
+  const grid = document.getElementById('streakGrid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  const pattern = [1,1,0,1,1,1,0,1,1,1,1,1,1,0,1,0,0,1,1,1,0,0,0,0,0,0,0,0];
+  for (let i = 0; i < 28; i++) {
+    const d = document.createElement('div');
+    d.className = 'streak-day' + (pattern[i] === 1 ? ' posted' : pattern[i] === 2 ? ' partial' : '');
+    grid.appendChild(d);
+  }
+}
+
+// Close modal on overlay click
+document.querySelectorAll('.overlay').forEach(overlay => {
+  overlay.addEventListener('click', function(e) {
+    if (e.target === this) this.classList.remove('open');
+  });
+});
+
+// Keyboard escape
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    document.querySelectorAll('.overlay.open').forEach(o => o.classList.remove('open'));
+  }
+});
+</script>
+</body>
+</html>
