@@ -102,229 +102,996 @@
   </div>
 
 <script>
-const APP_VER = '5.0.0';
-const LS_KEY = 'creatoros_v5_state';
-const SUPA_URL = 'https://hhiwxpdzmuzlzprvlanb.supabase.co';
-const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhoaXd4cGR6bXV6bHpwcnZsYW5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxMjY2MTEsImV4cCI6MjA5MjcwMjYxMX0.IycRpp8pK2c5zmBeMF15kfy3MS5ZaQmPd2M8WKHB304';
-const EDGE_FN_URL = SUPA_URL + '/functions/v1/smart-function';
-
-const supabase = (window.supabase && window.supabase.createClient)
-  ? window.supabase.createClient(SUPA_URL, SUPA_KEY)
-  : null;
-
-function defState(){
-  return {version:APP_VER, mode:'guest', onboarded:false, user:{brand:'',niche:'',audience:'',boundary:''}, dna:{positioning:'',pillars:[]}, ideas:[]};
+// ════════════════════════════════════════════════════════
+//  SUPABASE SETUP
+// ════════════════════════════════════════════════════════
+const supaUrl = 'https://hhiwxpdzmuzlzprvlanb.supabase.co';
+const supaKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImhoaXd4cGR6bXV6bHpwcnZsYW5iIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzcxMjY2MTEsImV4cCI6MjA5MjcwMjYxMX0.IycRpp8pK2c5zmBeMF15kfy3MS5ZaQmPd2M8WKHB304';
+// NOTE: anon key aman di frontend selama Row Level Security (RLS) aktif di Supabase.
+if (!window.supabase || !window.supabase.createClient) {
+  document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;min-height:100svh;background:#07070d;color:#ff6b6b;font-family:sans-serif;text-align:center;padding:24px;"><div><p style="font-size:16px;font-weight:700;margin-bottom:8px;">Gagal memuat library</p><p style="font-size:13px;color:#5a5a7a;">Cek koneksi internet kamu, lalu refresh halaman.</p></div></div>';
+  throw new Error('Supabase library not loaded');
 }
-let S = loadState();
+const supabase = window.supabase.createClient(supaUrl, supaKey);
 
-function loadState(){
-  try{ return Object.assign(defState(), JSON.parse(localStorage.getItem(LS_KEY)||'{}')); }
-  catch(e){ return defState(); }
-}
-function saveState(){ localStorage.setItem(LS_KEY, JSON.stringify(S)); }
-function toast(msg,type){
-  const t=document.createElement('div'); t.className='toast'+(type?' '+type:''); t.textContent=msg; document.body.appendChild(t);
-  setTimeout(()=>t.remove(),2800);
-}
-function show(viewId){ ['welcomeView','onboardView','authView','appView'].forEach(id=>document.getElementById(id).classList.add('hidden')); document.getElementById(viewId).classList.remove('hidden'); }
+// ════════════════════════════════════════════════════════
+//  AI CALL — via Edge Function (GEMINI_API_KEY aman di server)
+// ════════════════════════════════════════════════════════
+const EDGE_FN_URL = supaUrl + '/functions/v1/smart-function';
 
-function renderDNA(){
-  const p = S.dna.positioning || 'DNA belum tersedia.';
-  const card=document.getElementById('dnaPreview');
-  card.classList.remove('hidden');
-  card.innerHTML = `<h3 style="margin:0 0 8px">Preview DNA</h3><p>${escapeHtml(p)}</p><p class="small">Pillars: ${(S.dna.pillars||[]).map(escapeHtml).join(' · ')||'-'}</p>`;
-}
+async function aiCall(prompt, sys) {
+  const { data: { session } } = await supabase.auth.getSession();
 
-function renderApp(){
-  document.getElementById('appBrand').textContent = S.user.brand || 'Creator';
-  document.getElementById('appPos').textContent = S.dna.positioning || 'DNA belum dibuat.';
-  document.getElementById('modeTag').textContent = S.mode === 'auth' ? 'CLOUD MODE' : 'LOCAL MODE';
+  var headers = {
+    'Content-Type': 'application/json',
+    // apikey membantu call dari client walau belum ada session login
+    'apikey': supaKey,
+  };
+  if (session && session.access_token) {
+    headers['Authorization'] = 'Bearer ' + session.access_token;
+  }
 
-  const ideas = (S.ideas||[]).map((it)=> typeof it==='string' ? {text:it,createdAt:Date.now(),posted:false,views:0} : it);
-  S.ideas = ideas;
+  const res = await fetch(EDGE_FN_URL, {
+    method: 'POST',
+    headers: headers,
+    body: JSON.stringify({
+      prompt: prompt,
+      systemPrompt: sys || buildSysPrompt(),
+    }),
+  });
 
-  const box=document.getElementById('ideas');
-  box.innerHTML = ideas.slice().reverse().map((x,i)=>`<div class="card"><b>Ide</b><p>${escapeHtml(x.text)}</p><p class="small">${fmtDate(x.createdAt)} · ${x.posted?'Posted':'Draft'} · ${x.views||0} views</p></div>`).join('');
-
-  const hist = document.getElementById('histList');
-  hist.innerHTML = ideas.length ? ideas.slice().reverse().map((x,idx)=>{
-    const realIndex = ideas.length-1-idx;
-    return `<div class="card">
-      <p>${escapeHtml(x.text)}</p>
-      <div class="row">
-        <button class="btn2" data-post="${realIndex}">${x.posted?'✅ Posted':'Tandai Posted'}</button>
-        <input data-views="${realIndex}" type="number" placeholder="views" value="${x.views||0}" style="max-width:120px" />
-        <button class="btn2" data-savev="${realIndex}">Simpan</button>
-      </div>
-    </div>`;
-  }).join('') : '<p class="small">Belum ada ide.</p>';
-
-  const posted = ideas.filter(x=>x.posted);
-  const totalViews = posted.reduce((a,c)=>a+(parseInt(c.views)||0),0);
-  const avgViews = posted.length ? Math.round(totalViews/posted.length) : 0;
-  document.getElementById('analyticsBox').innerHTML = `
-    <div class="card"><b>Total Ide</b><p>${ideas.length}</p></div>
-    <div class="card"><b>Total Posted</b><p>${posted.length}</p></div>
-    <div class="card"><b>Total Views</b><p>${totalViews}</p></div>
-    <div class="card"><b>Rata-rata Views/Posted</b><p>${avgViews}</p></div>`;
-}
-
-function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m])); }
-function fmtDate(ts){ const d=new Date(ts||Date.now()); return d.toLocaleDateString('id-ID')+' '+d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}); }
-
-function buildLocalDNA(){
-  const b=S.user.brand||'Brand'; const n=S.user.niche||'niche ini'; const a=S.user.audience||'audiens';
-  S.dna.positioning = `${b} adalah creator ${n} yang praktis, jujur, dan fokus membantu ${a} dengan konten yang langsung bisa dipakai hari ini.`;
-  S.dna.pillars = ['Tips Praktis', 'Review Jujur', 'Behind The Scene'];
-}
-
-async function aiCall(prompt){
-  if(!supabase) throw new Error('Supabase library tidak termuat');
-  const ses = await supabase.auth.getSession();
-  const token = ses && ses.data && ses.data.session ? ses.data.session.access_token : null;
-  const headers = {'Content-Type':'application/json','apikey':SUPA_KEY};
-  if(token) headers.Authorization = 'Bearer ' + token;
-  const res = await fetch(EDGE_FN_URL,{method:'POST',headers,body:JSON.stringify({prompt,systemPrompt:'Kamu adalah content strategist Indonesia.'})});
-  if(!res.ok) throw new Error('AI error '+res.status);
-  const d=await res.json();
-  if(d.error) throw new Error(d.error);
+  if (!res.ok) {
+    if (res.status === 401 || res.status === 403) {
+      throw new Error('Akses AI ditolak. Login dulu lalu coba lagi.');
+    }
+    throw new Error('Edge Function error ' + res.status);
+  }
+  const d = await res.json();
+  if (d.error) throw new Error(d.error);
   return d.text || '';
 }
 
-function authErr(e){
-  const m=((e&&e.message)||'').toLowerCase();
-  if(m.includes('invalid login')) return 'Email/password salah.';
-  if(m.includes('email not confirmed')) return 'Email belum dikonfirmasi.';
-  if(m.includes('failed to fetch')||m.includes('network')) return 'Koneksi ke server auth gagal.';
-  if(m.includes('already registered')) return 'Email sudah terdaftar.';
-  return (e&&e.message) || 'Auth gagal.';
+function showAuth() {
+  var w = document.getElementById('welcome'); if (w) w.style.display = 'none';
+  var a = document.getElementById('app');     if (a) a.style.display = 'none';
+  var ov = document.getElementById('authOverlay'); if (ov) ov.style.display = 'flex';
+}
+function hideAuth() {
+  var ov = document.getElementById('authOverlay'); if (ov) ov.style.display = 'none';
 }
 
-async function buildDNA(){
-  S.user.brand = document.getElementById('brandInput').value.trim();
-  S.user.niche = document.getElementById('nicheInput').value.trim();
-  S.user.audience = document.getElementById('audInput').value.trim();
-  S.user.boundary = document.getElementById('boundInput').value.trim();
-  if(!S.user.brand || !S.user.niche){ toast('Nama brand & niche wajib diisi','err'); return; }
-  const btn=document.getElementById('buildDnaBtn'); btn.disabled=true;
-  try{
-    buildLocalDNA();
-    S.onboarded = true; saveState(); renderDNA();
-    toast('DNA selesai ✅ lanjut login atau mode lokal','ok');
-    show('authView');
-  } finally { btn.disabled=false; }
+function getAuthButtons() {
+  var ov = document.getElementById('authOverlay');
+  if (!ov) return { loginBtn:null, registerBtn:null };
+  var btns = ov.querySelectorAll('button');
+  return { loginBtn: btns[0] || null, registerBtn: btns[1] || null };
 }
 
-async function doRegister(){
-  if(!supabase){ toast('Supabase belum termuat','err'); return; }
-  const email=document.getElementById('emailInput').value.trim();
-  const password=document.getElementById('passInput').value.trim();
-  if(!email||!password){ toast('Email dan password wajib','err'); return; }
-  const btn=document.getElementById('registerBtn'); btn.disabled=true;
-  try{
-    const r=await supabase.auth.signUp({email,password});
-    if(r.error) throw r.error;
-    toast('Daftar berhasil. Coba login sekarang.','ok');
-  } catch(e){ toast(authErr(e),'err'); }
-  finally{ btn.disabled=false; }
+function getSafeRedirectUrl() {
+  var isHttp = /^https?:/i.test(window.location.protocol || '');
+  if (!isHttp) return null;
+  return window.location.origin + window.location.pathname;
 }
 
-async function doLogin(){
-  if(!supabase){ toast('Supabase belum termuat','err'); return; }
-  const email=document.getElementById('emailInput').value.trim();
-  const password=document.getElementById('passInput').value.trim();
-  if(!email||!password){ toast('Email dan password wajib','err'); return; }
-  const btn=document.getElementById('loginBtn'); btn.disabled=true;
-  try{
-    const r=await supabase.auth.signInWithPassword({email,password});
-    if(r.error) throw r.error;
-    S.mode='auth'; saveState();
-    await syncCloud();
-    renderApp(); show('appView'); openTab('gen'); toast('Login berhasil 👋','ok');
-  } catch(e){ toast(authErr(e),'err'); }
-  finally{ btn.disabled=false; }
-}
+async function handleRegister() {
+  var authBtns = getAuthButtons();
+  if (authBtns.registerBtn) authBtns.registerBtn.disabled = true;
+  try {
+    var email = (document.getElementById('authEmail')||{}).value;
+    var password = (document.getElementById('authPassword')||{}).value;
+    if (!email || !password) { toast('Email dan password wajib diisi!', 'err'); return; }
+    if (password.length < 6) { toast('Password minimal 6 karakter', 'err'); return; }
 
-async function testAuth(){
-  if(!supabase){ toast('Supabase belum termuat','err'); return; }
-  const b=document.getElementById('diagBtn'); b.disabled=true;
-  try{
-    const r=await supabase.auth.signInWithPassword({email:'diag@invalid.local',password:'invalid_password_123'});
-    if(r.error && String(r.error.message||'').toLowerCase().includes('invalid login')) toast('Auth server reachable ✅','ok');
-    else if(r.error) toast('Auth reachable tapi ada kendala: '+authErr(r.error));
-    else toast('Auth reachable ✅','ok');
-  } catch(e){ toast('Auth tidak terjangkau: '+authErr(e),'err'); }
-  finally{ b.disabled=false; }
-}
+    var redirectUrl = getSafeRedirectUrl();
+    var options = redirectUrl ? { emailRedirectTo: redirectUrl } : undefined;
+    var resp = await supabase.auth.signUp({ email: email, password: password, options: options });
 
-function localMode(){
-  if(!S.onboarded){ toast('Isi DNA dulu sebelum masuk mode lokal','err'); show('onboardView'); return; }
-  S.mode='guest'; saveState(); renderApp(); show('appView'); openTab('gen'); toast('Mode lokal aktif','ok');
-}
-
-async function genIdeas(){
-  const topic=document.getElementById('topicInput').value.trim();
-  const btn=document.getElementById('genBtn'); btn.disabled=true;
-  try{
-    const prompt=`Buat 3 ide konten untuk brand ${S.user.brand} niche ${S.user.niche}. Topic: ${topic||'bebas'}. Satu ide per baris.`;
-    let out='';
-    try { out = await aiCall(prompt); }
-    catch(e){ out = `Tips praktis ${S.user.niche}\nKesalahan umum ${S.user.niche}\nReview jujur ${topic||S.user.niche}`; }
-    S.ideas = out.split('\n').map(x=>x.trim()).filter(Boolean).slice(0,3).map(t=>({text:t,createdAt:Date.now(),posted:false,views:0})).concat(S.ideas||[]);
-    saveState(); renderApp();
-  } finally { btn.disabled=false; }
-}
-
-async function syncCloud(){
-  if(!supabase || S.mode!=='auth') return;
-  const gu=await supabase.auth.getUser();
-  const u=gu && gu.data ? gu.data.user : null;
-  if(!u) return;
-  await supabase.from('user_data').upsert({user_id:u.id,state:S},{onConflict:'user_id'});
-}
-
-async function logout(){
-  if(supabase) await supabase.auth.signOut();
-  S.mode='guest'; saveState(); show('welcomeView'); toast('Logout selesai','ok');
-}
-
-function openTab(name){
-  document.getElementById('tabGen').classList.toggle('hidden', name!=='gen');
-  document.getElementById('tabHist').classList.toggle('hidden', name!=='hist');
-  document.getElementById('tabAn').classList.toggle('hidden', name!=='an');
-  document.getElementById('tabGenBtn').className = name==='gen' ? 'btn' : 'btn2';
-  document.getElementById('tabHistBtn').className = name==='hist' ? 'btn' : 'btn2';
-  document.getElementById('tabAnBtn').className = name==='an' ? 'btn' : 'btn2';
-}
-
-function bind(){
-  document.getElementById('startBtn').addEventListener('click',()=>show('onboardView'));
-  document.getElementById('openAuthBtn').addEventListener('click',()=>show('authView'));
-  document.getElementById('backWelcomeBtn').addEventListener('click',()=>show('welcomeView'));
-  document.getElementById('buildDnaBtn').addEventListener('click',buildDNA);
-  document.getElementById('loginBtn').addEventListener('click',doLogin);
-  document.getElementById('registerBtn').addEventListener('click',doRegister);
-  document.getElementById('diagBtn').addEventListener('click',testAuth);
-  document.getElementById('localBtn').addEventListener('click',localMode);
-  document.getElementById('genBtn').addEventListener('click',genIdeas);
-  document.getElementById('logoutBtn').addEventListener('click',logout);
-  document.getElementById('tabGenBtn').addEventListener('click',()=>openTab('gen'));
-  document.getElementById('tabHistBtn').addEventListener('click',()=>openTab('hist'));
-  document.getElementById('tabAnBtn').addEventListener('click',()=>openTab('an'));
-  document.getElementById('passInput').addEventListener('keydown',(e)=>{ if(e.key==='Enter') doLogin(); });
-
-  document.addEventListener('click', (e)=>{
-    const p = e.target.getAttribute('data-post');
-    if (p !== null) {
-      const idx = parseInt(p,10);
-      if (S.ideas[idx]) { S.ideas[idx].posted = true; saveState(); renderApp(); }
+    if (resp.error) {
+      var msg = resp.error.message || '';
+      if (/already registered/i.test(msg)) {
+        toast('Email sudah terdaftar. Silakan login.', 'inf');
+      } else {
+        toast('Gagal daftar: ' + msg, 'err');
+      }
       return;
     }
-    const sv = e.target.getAttribute('data-savev');
-    if (sv !== null) {
-      const idx = parseInt(sv,10);
-      const inp = document.querySelector('input[data-views="'+idx+'"]');
-      if (S.ideas[idx] && inp) { S.ideas[idx].views = parseInt(inp.value)||0; saveState(); renderApp(); }
+    if (resp.data && resp.data.session) {
+      hideAuth();
+      await initAfterLogin(resp.data.user);
+      toast('Akun dibuat! 🎉', 'ok');
+    } else {
+      toast('Akun dibuat. Cek email konfirmasi lalu login.', 'ok', 5000);
+    }
+  } catch(e) {
+    console.error('register error', e);
+    toast('Error: ' + (e.message || 'register gagal'), 'err');
+  } finally {
+    if (authBtns.registerBtn) authBtns.registerBtn.disabled = false;
+  }
+}
+
+
+async function handleLogin() {
+  var authBtns = getAuthButtons();
+  if (authBtns.loginBtn) authBtns.loginBtn.disabled = true;
+  try {
+    var email = (document.getElementById('authEmail')||{}).value;
+    var password = (document.getElementById('authPassword')||{}).value;
+    if (!email || !password) { toast('Email dan password wajib diisi!', 'err'); return; }
+    var resp = await supabase.auth.signInWithPassword({ email: email, password: password });
+    if (resp.error) {
+      var msg = resp.error.message || '';
+      if (/email not confirmed/i.test(msg)) {
+        toast('Email belum dikonfirmasi. Cek inbox kamu.', 'err');
+      } else if (/invalid login/i.test(msg)) {
+        toast('Email atau password salah', 'err');
+      } else {
+        toast('Gagal masuk: ' + msg, 'err');
+      }
+      return;
+    }
+    hideAuth();
+    await initAfterLogin(resp.data.user);
+    toast('Selamat datang! 👋', 'ok');
+  } catch(e) {
+    console.error('login error', e);
+    toast('Error: ' + (e.message || 'login gagal'), 'err');
+  } finally {
+    if (authBtns.loginBtn) authBtns.loginBtn.disabled = false;
+  }
+}
+
+
+async function checkUser() {
+  try {
+    var resp = await supabase.auth.getSession();
+    var session = resp && resp.data ? resp.data.session : null;
+    if (session) {
+      hideAuth();
+      var w = document.getElementById('welcome'); if (w) w.style.display = 'none';
+      await initAfterLogin(session.user);
+    } else {
+      showAuth();
+    }
+  } catch(e) {
+    console.error('checkUser error', e);
+    showAuth();
+  }
+}
+
+// auto-update saat session berubah (login/logout di tab lain, refresh token, dll)
+supabase.auth.onAuthStateChange(function(event, session) {
+  if (event === 'SIGNED_OUT') { showAuth(); }
+});
+// checkUser() dipanggil di DOMContentLoaded (lihat bawah)
+
+// ════════════════════════════════════════════════════════
+//  CREATOR SPECIALIST OS v4 — Brand DNA Memory System
+// ════════════════════════════════════════════════════════
+
+const SK = 'cOS_v4';
+
+function defaultState() {
+  return {
+    onboarded: false,
+    user: { brand:'', niche:'', product:'', audience:'', forbidden:'', angry:'', notfor:'', sig:'', persona:'', platforms:[], style:'Face + Voice', time:'1 jam', level:'Baru Mulai', goals:[] },
+    dna: { positioning:'', micro_niche:'', pillars:[], tone_keywords:[], forbidden_topics:[], signature_phrases:[], audience_language:'', best_hooks:[], best_angles:[], best_formats:[], weak_patterns:[], calibrations:[], health:20, version:0 },
+    contents: [],
+    posted_days: [],
+    strategy: '',
+    evolution: '',
+    monthly: '',
+  };
+}
+
+function mergeState(def, saved) {
+  const o = Object.assign({}, def);
+  Object.keys(saved).forEach(k => {
+    if (saved[k] !== null && typeof saved[k] === 'object' && !Array.isArray(saved[k]) && typeof def[k] === 'object' && !Array.isArray(def[k])) {
+      o[k] = mergeState(def[k], saved[k]);
+    } else if (saved[k] !== undefined) {
+      o[k] = saved[k];
+    }
+  });
+  return o;
+}
+
+function loadS() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(SK) || '{}');
+    return mergeState(defaultState(), saved);
+  } catch(e) { return defaultState(); }
+}
+
+let _saveTimeout = null;
+function saveS() {
+  // 1. Simpan ke localStorage (instan)
+  localStorage.setItem(SK, JSON.stringify(S));
+  // 2. Debounce sync ke Supabase — tidak setiap keystroke
+  clearTimeout(_saveTimeout);
+  _saveTimeout = setTimeout(syncToSupabase, 1500);
+}
+
+async function syncToSupabase() {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    const { error } = await supabase
+      .from('user_data')
+      .upsert({ user_id: user.id, state: S }, { onConflict: 'user_id' });
+    if (error) console.error('Supabase sync error:', error.message);
+  } catch(e) { console.error('syncToSupabase failed:', e); }
+}
+
+async function loadFromSupabase(userId) {
+  try {
+    const { data, error } = await supabase
+      .from('user_data')
+      .select('state')
+      .eq('user_id', userId)
+      .maybeSingle();
+    if (error) { console.warn('loadFromSupabase:', error.message); return null; }
+    if (!data) return null;
+    return data.state;
+  } catch(e) { console.warn('loadFromSupabase exception', e); return null; }
+}
+
+async function initAfterLogin(user) {
+  const remote = await loadFromSupabase(user.id);
+  if (remote) {
+    S = mergeState(defaultState(), remote);
+    localStorage.setItem(SK, JSON.stringify(S));
+  } else {
+    S = loadS();
+  }
+  if (S.onboarded) {
+    document.getElementById('welcome').style.display = 'none';
+    document.getElementById('app').style.display = 'flex';
+    refreshApp();
+    var wc = document.getElementById('weekContent');
+    if (wc && S.strategy) wc.innerHTML = '<div class="aib"><p class="ait">' + esc(S.strategy) + '</p></div>';
+    var ec = document.getElementById('evoContent');
+    if (ec && S.evolution) ec.innerHTML = '<p class="ait">' + esc(S.evolution) + '</p>';
+  }
+}
+
+let S = loadS();
+
+function buildSysPrompt() {
+  const d = S.dna, u = S.user;
+  const posted = S.contents.filter(c => c.posted);
+  return `Kamu adalah Brand DNA Guardian dan ghostwriter untuk ${u.brand || 'Creator'}.
+
+BRAND DNA MEMORY:
+Niche: ${u.niche} → ${d.micro_niche || u.niche}
+Positioning: "${d.positioning || 'belum dibuild'}"
+Persona brand: ${u.persona || 'friendly dan jujur'}
+Tone keywords: ${(d.tone_keywords || []).join(', ') || u.sig || 'jujur, hangat, langsung'}
+Kata signature: ${(d.signature_phrases || []).join(', ') || u.sig || '(belum ada)'}
+TIDAK PERNAH bahas: ${u.forbidden || '(belum diset)'}
+Yang membuat brand marah: ${u.angry || '(belum diset)'}
+Audience: ${u.audience || 'umum'} — BUKAN untuk: ${u.notfor || '(belum diset)'}
+Platform: ${(u.platforms || []).join(', ') || 'TikTok'}
+Style: ${u.style || 'Face + Voice'}
+
+POLA YANG TERBUKTI DARI DATA:
+Hook terbukti: ${(d.best_hooks || []).slice(-3).join(' | ') || 'belum ada data'}
+Angle terbaik: ${(d.best_angles || []).join(', ') || 'belum ada data'}
+Format terbaik: ${(d.best_formats || []).join(', ') || 'belum ada data'}
+Pola lemah (HINDARI): ${(d.weak_patterns || []).slice(-3).join(', ') || 'belum ada data'}
+
+Total konten diposting: ${posted.length}
+Total views: ${posted.reduce((a,c) => a+(parseInt(c.views)||0), 0)}
+DNA Health: ${d.health || 20}%
+
+TUGASMU:
+1. Setiap output WAJIB konsisten dengan Brand DNA di atas
+2. Tulis SEPERTI ${u.brand || 'Creator'} sendiri — bukan seperti AI
+3. Gunakan pola yang terbukti berhasil
+4. HINDARI pola lemah dan topik terlarang
+5. Kalau ada instruksi yang melanggar brand boundaries, tolak`;
+}
+
+// ─── UTILS ───────────────────────────────────────────────
+function toast(msg, type, dur) {
+  type = type || 'inf'; dur = dur || 3000;
+  const c = document.getElementById('tw');
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(function() { t.classList.add('out'); setTimeout(function() { if(t.parentNode) t.parentNode.removeChild(t); }, 200); }, dur);
+}
+
+function copyTxt(text, btn) {
+  navigator.clipboard.writeText(text).then(function() {
+    var f = document.getElementById('cfl');
+    if(f) { f.classList.add('on'); setTimeout(function() { f.classList.remove('on'); }, 1200); }
+    if (btn) { var orig = btn.textContent; btn.textContent = '✓ Disalin'; setTimeout(function() { btn.textContent = orig; }, 1500); }
+  }).catch(function() { toast('Gagal copy', 'err'); });
+}
+
+function setLd(id, v) {
+  var b = document.getElementById(id);
+  if (!b) return;
+  b.disabled = v;
+  if (v) b.classList.add('ld'); else b.classList.remove('ld');
+}
+
+function openOv(id) { document.getElementById(id).classList.add('open'); }
+function closeOv(id) { document.getElementById(id).classList.remove('open'); }
+
+document.addEventListener('click', function(e) {
+  if (e.target.classList.contains('ov')) e.target.classList.remove('open');
+});
+
+function tgl(el) { el.classList.toggle('sel'); }
+function sgl(el, gid) {
+  var g = document.getElementById(gid) || el.parentElement;
+  g.querySelectorAll('.tag').forEach(function(t) { t.classList.remove('sel'); });
+  el.classList.add('sel');
+}
+function getSelTags(gid) {
+  return Array.from(document.querySelectorAll('#' + gid + ' .tag.sel')).map(function(t) { return t.dataset.val || t.textContent.trim(); });
+}
+
+function vf(id, errId) {
+  var v = (document.getElementById(id) || {}).value;
+  if (!v || !v.trim()) {
+    var el = document.getElementById(id); if(el) el.classList.add('err');
+    var er = document.getElementById(errId); if(er) er.classList.add('on');
+    return false;
+  }
+  var el = document.getElementById(id); if(el) el.classList.remove('err');
+  var er = document.getElementById(errId); if(er) er.classList.remove('on');
+  return true;
+}
+
+function esc(s) { return (s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function fmtNum(n) { n=parseInt(n)||0; return n>=1000000?(n/1000000).toFixed(1)+'M':n>=1000?(n/1000).toFixed(1)+'K':String(n); }
+function todayStr() { return new Date().toISOString().split('T')[0]; }
+function prevDay(s) { var d=new Date(s); d.setDate(d.getDate()-1); return d.toISOString().split('T')[0]; }
+
+function findC(id) {
+  return S.contents.find(function(c) { return String(c.id) === String(id); });
+}
+
+// ─── WELCOME ─────────────────────────────────────────────
+function startOb() {
+  // onboarding tetap bisa dibuka, tapi kalau AI butuh auth user akan diarahkan login dengan jelas
+  openOv('obOv');
+  renderObDots();
+}
+
+// ─── ONBOARDING ──────────────────────────────────────────
+var obStep = 1;
+var OB_TOTAL = 5;
+
+function renderObDots() {
+  var c = document.getElementById('obDots');
+  c.innerHTML = '';
+  for (var i = 1; i <= OB_TOTAL; i++) {
+    var d = document.createElement('div');
+    d.className = 'od' + (i < obStep ? ' done' : i === obStep ? ' cur' : '');
+    c.appendChild(d);
+  }
+}
+
+function obNext(from) {
+  if (from === 1) {
+    if (!vf('ob_brand','fe_brand') || !vf('ob_niche','fe_niche')) return;
+    S.user.brand = document.getElementById('ob_brand').value.trim();
+    S.user.niche = document.getElementById('ob_niche').value.trim();
+    S.user.product = document.getElementById('ob_product').value.trim();
+    S.user.audience = document.getElementById('ob_audience').value.trim();
+  } else if (from === 2) {
+    S.user.forbidden = document.getElementById('ob_forbidden').value.trim();
+    S.user.angry = document.getElementById('ob_angry').value.trim();
+    S.user.notfor = document.getElementById('ob_notfor').value.trim();
+  } else if (from === 3) {
+    S.user.sig = document.getElementById('ob_sig').value.trim();
+    S.user.persona = document.getElementById('ob_persona').value.trim();
+    S.user.platforms = getSelTags('ptags');
+    S.user.style = getSelTags('stags')[0] || 'Face + Voice';
+  } else if (from === 4) {
+    S.user.time = getSelTags('ttags')[0] || '1 jam';
+    S.user.level = getSelTags('lvtags')[0] || 'Baru Mulai';
+    S.user.goals = getSelTags('gtags');
+    setLd('obBuildBtn', true);
+    document.getElementById('ob4').classList.remove('active');
+    obStep = 5;
+    document.getElementById('ob5').classList.add('active');
+    renderObDots();
+    buildDNA();
+    return;
+  }
+  document.getElementById('ob' + from).classList.remove('active');
+  obStep = from + 1;
+  document.getElementById('ob' + obStep).classList.add('active');
+  renderObDots();
+}
+
+function obBack(from) {
+  document.getElementById('ob' + from).classList.remove('active');
+  obStep = from - 1;
+  document.getElementById('ob' + obStep).classList.add('active');
+  renderObDots();
+}
+
+function buildDNA() {
+  var u = S.user;
+  var prompt = 'Bangun Brand DNA Memory untuk creator:\n' +
+    'Brand: ' + u.brand + '\nNiche: ' + u.niche + '\nProduk: ' + (u.product||'-') + '\nAudience: ' + (u.audience||'umum') + '\n' +
+    'TIDAK PERNAH posting: ' + (u.forbidden||'-') + '\nYang membuat brand marah: ' + (u.angry||'-') + '\nBukan untuk: ' + (u.notfor||'-') + '\n' +
+    'Signature words: ' + (u.sig||'-') + '\nPersona: ' + (u.persona||'-') + '\n' +
+    'Platform: ' + u.platforms.join(', ') + '\nStyle: ' + u.style + '\nGoals: ' + u.goals.join(', ') + '\n\n' +
+    'Output PERSIS format ini:\n' +
+    'POSITIONING: [1-2 kalimat spesifik dan kuat]\n' +
+    'MICRONICHE: [niche lebih spesifik]\n' +
+    'PILLAR1: [nama] | [deskripsi]\nPILLAR2: [nama] | [deskripsi]\nPILLAR3: [nama] | [deskripsi]\nPILLAR4: [nama] | [deskripsi]\nPILLAR5: [nama] | [deskripsi]\n' +
+    'TONE: [kata1] | [kata2] | [kata3] | [kata4] | [kata5]\n' +
+    'SIGNATURE: [frasa1] | [frasa2] | [frasa3]\n' +
+    'FORBIDDEN: [topik1] | [topik2] | [topik3]\n' +
+    'AUDIENCE_LANG: [cara audience berbicara — 1 kalimat]\n' +
+    'HOOK1: [template hook pertama]\nHOOK2: [template hook kedua]\nHOOK3: [template hook ketiga]\n' +
+    'BOUND1: [hal yang tidak pernah dilakukan]\nBOUND2: [hal kedua]\nBOUND3: [hal ketiga]';
+
+  aiCall(prompt, 'Kamu adalah Brand DNA architect. Jawab PERSIS dalam format yang diminta, tanpa teks tambahan.')
+    .then(function(res) { parseDNA(res); })
+    .catch(function() { parseDNA(fallbackDNA()); })
+    .finally(function() {
+      renderObStep5();
+      setLd('obBuildBtn', false);
+      document.getElementById('obEnterBtn').disabled = false;
+    });
+}
+
+function fallbackDNA() {
+  var u = S.user;
+  return 'POSITIONING: Specialist ' + u.niche + ' yang jujur dan bernilai tinggi untuk ' + (u.audience||'audiens Indonesia') + ' — konten yang langsung bisa diaplikasikan, bukan sekadar inspirasi.\n' +
+    'MICRONICHE: ' + u.niche + ' praktis & actionable\n' +
+    'PILLAR1: Tips Praktis | Konten yang langsung bisa diterapkan hari ini\n' +
+    'PILLAR2: Review Jujur | Penilaian transparan tanpa sponsor tersembunyi\n' +
+    'PILLAR3: Behind the Scene | Proses nyata yang membangun kepercayaan\n' +
+    'PILLAR4: Edukasi ' + u.niche + ' | Pengetahuan yang membangun authority\n' +
+    'PILLAR5: Personal Story | Pengalaman nyata yang membuat audience merasa tidak sendirian\n' +
+    'TONE: jujur | hangat | edukatif | relatable | langsung\n' +
+    'SIGNATURE: aku buktiin sendiri | worth it atau nggak | ini yang aku temukan | jujur ya | gak bohong\n' +
+    'FORBIDDEN: ' + (u.forbidden||'konten tidak beretika') + ' | drama tidak perlu | klaim tanpa bukti\n' +
+    'AUDIENCE_LANG: Audience berbicara informal, suka validasi dari yang sudah coba duluan, relate dengan cerita nyata\n' +
+    'HOOK1: Jujur ya, selama ini aku salah tentang [topik] sampai aku nemuin ini\n' +
+    'HOOK2: POV: Kamu [situasi] dan gak tau harus ngapain —\n' +
+    'HOOK3: Rating jujur [produk] setelah [waktu] — ini hasilnya\n' +
+    'BOUND1: Tidak mempromosikan produk yang belum dicoba\n' +
+    'BOUND2: Tidak menggunakan clickbait yang tidak sesuai isi\n' +
+    'BOUND3: Tidak membahas topik di luar niche hanya karena trending';
+}
+
+function parseDNA(raw) {
+  var lines = raw.split('\n').map(function(l) { return l.trim(); }).filter(Boolean);
+  function get(key) {
+    var l = lines.find(function(l) { return l.startsWith(key + ':'); });
+    return l ? l.replace(key + ':', '').trim() : '';
+  }
+  function getArr(key) { return get(key).split('|').map(function(x) { return x.trim(); }).filter(Boolean); }
+  var pillars = [];
+  lines.forEach(function(l) {
+    if (/^PILLAR\d:/.test(l)) {
+      var p = l.replace(/^PILLAR\d:/, '').trim().split('|');
+      pillars.push({ name: (p[0]||'').trim(), desc: (p[1]||'').trim() });
+    }
+  });
+  var hooks = [get('HOOK1'), get('HOOK2'), get('HOOK3')].filter(Boolean);
+  var bounds = [get('BOUND1'), get('BOUND2'), get('BOUND3')].filter(Boolean);
+  S.dna = {
+    positioning: get('POSITIONING'),
+    micro_niche: get('MICRONICHE'),
+    pillars: pillars,
+    tone_keywords: getArr('TONE'),
+    forbidden_topics: getArr('FORBIDDEN'),
+    signature_phrases: getArr('SIGNATURE'),
+    audience_language: get('AUDIENCE_LANG'),
+    best_hooks: hooks,
+    best_angles: [],
+    best_formats: [],
+    weak_patterns: [],
+    calibrations: [],
+    health: 30,
+    boundaries: bounds,
+    version: (S.dna.version || 0) + 1,
+  };
+  S.onboarded = true;
+  saveS();
+}
+
+function renderObStep5() {
+  var pt = document.getElementById('ob_pos');
+  if (pt) pt.textContent = '"' + S.dna.positioning + '"';
+  var cur = document.getElementById('ob_cur'); if (cur) cur.style.display = 'none';
+  var pr = document.getElementById('ob_pillars');
+  if (pr) {
+    pr.innerHTML = '';
+    S.dna.pillars.forEach(function(p) {
+      var sp = document.createElement('span'); sp.className = 'badge bp'; sp.textContent = p.name; pr.appendChild(sp);
+    });
+  }
+  var br = document.getElementById('ob_bounds');
+  if (br) {
+    br.innerHTML = (S.dna.boundaries || []).map(function(b) {
+      return '<div style="background:rgba(255,107,107,.07);border:1px solid rgba(255,107,107,.15);border-radius:7px;padding:6px 10px;font-size:11.5px;color:var(--a3);margin-bottom:5px;">❌ ' + esc(b) + '</div>';
+    }).join('');
+  }
+}
+
+function finishOb() {
+  closeOv('obOv');
+  document.getElementById('welcome').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  refreshApp();
+  toast('Brand DNA berhasil dibangun! 🧬', 'ok', 4000);
+}
+
+// ─── APP ─────────────────────────────────────────────────
+function refreshApp() {
+  var brand = S.user.brand || 'Creator';
+  var av = document.getElementById('hdr_av'); if(av) av.textContent = brand[0] ? brand[0].toUpperCase() : 'C';
+  var hs = document.getElementById('hdr_streak'); if(hs) hs.textContent = calcStreak();
+  renderHome();
+  renderSettings();
+  renderPlanPage();
+}
+
+// ─── LEVELS ──────────────────────────────────────────────
+var LEVELS = [
+  // Threshold dinaikan: sekarang butuh HASIL nyata, bukan sekadar volume posting
+  {n:1, name:'Beginner Creator', minXP:0, maxXP:500},
+  {n:2, name:'Growing Creator', minXP:500, maxXP:2000},
+  {n:3, name:'Authority Creator', minXP:2000, maxXP:6000},
+  {n:4, name:'Specialist Creator', minXP:6000, maxXP:15000},
+  {n:5, name:'Influencer Creator', minXP:15000, maxXP:99999},
+];
+
+function calcXP() {
+  // XP sekarang berbasis HASIL, bukan aktivitas.
+  // Posting = 10 XP (bukan 50) — aktivitas sendiri tidak cukup
+  // Views = bobot utama: setiap 100 views = 30 XP
+  // ER tinggi (>5%) = bonus kualitas per konten
+  // Streak = bonus kecil untuk konsistensi
+  var posted = S.contents.filter(function(c) { return c.posted; });
+  var activityXP = posted.length * 10; // dikurangi drastis dari 50 → 10
+  var viewXP = posted.reduce(function(a,c) {
+    return a + Math.floor((parseInt(c.views)||0) / 100) * 30; // setiap 100 views = 30 XP
+  }, 0);
+  var qualityBonus = posted.reduce(function(a,c) {
+    var v = parseInt(c.views)||0;
+    if (v < 100) return a;
+    var er = ((parseInt(c.likes||0)+parseInt(c.comments||0)+parseInt(c.saves||0))/v)*100;
+    return a + (er >= 8 ? 50 : er >= 5 ? 25 : 0); // bonus ER tinggi per konten
+  }, 0);
+  var streakXP = calcStreak() * 5; // dikurangi dari 10 → 5
+  return activityXP + viewXP + qualityBonus + streakXP;
+}
+
+function getLevel(xp) {
+  for (var i = LEVELS.length-1; i >= 0; i--) { if (xp >= LEVELS[i].minXP) return LEVELS[i]; }
+  return LEVELS[0];
+}
+
+// ─── STREAK ──────────────────────────────────────────────
+function calcStreak() {
+  if (!S.posted_days.length) return 0;
+  var uniq = S.posted_days.filter(function(v,i,a) { return a.indexOf(v)===i; }).sort().reverse();
+  var check = todayStr(), streak = 0;
+  for (var i = 0; i < 365; i++) {
+    if (uniq.indexOf(check) >= 0) { streak++; check = prevDay(check); } else break;
+  }
+  return streak;
+}
+
+// ─── DNA HEALTH ───────────────────────────────────────────
+function calcDNAHealth() {
+  var h = 20;
+  if (S.dna.positioning) h += 15;
+  if ((S.dna.best_hooks||[]).length > 2) h += 15;
+  if ((S.dna.calibrations||[]).length > 5) h += 15;
+  if ((S.dna.best_angles||[]).length > 2) h += 10;
+  if ((S.dna.best_formats||[]).length > 0) h += 10;
+  if (S.contents.filter(function(c) { return c.posted && parseInt(c.views)>0; }).length > 2) h += 15;
+  return Math.min(100, h);
+}
+
+// ─── BFS ─────────────────────────────────────────────────
+function calcBFS(hook, caption, format) {
+  var d = S.dna, u = S.user;
+  var score = 50;
+  var text = ((hook||'') + ' ' + (caption||'')).toLowerCase();
+  var toneHits = (d.tone_keywords||[]).filter(function(t) { return text.indexOf(t.toLowerCase())>=0; }).length;
+  score += Math.min(20, toneHits*5);
+  var forbWords = ((u.forbidden||'')+' '+(d.forbidden_topics||[]).join(' ')).toLowerCase().split(/[,|]+/).map(function(w){return w.trim();}).filter(function(w){return w.length>3;});
+  var forbHits = forbWords.filter(function(f) { return text.indexOf(f)>=0; }).length;
+  score -= forbHits*15;
+  var sigHits = (d.signature_phrases||[]).filter(function(s) { return text.indexOf(s.toLowerCase())>=0; }).length;
+  score += Math.min(15, sigHits*8);
+  if ((d.best_formats||[]).indexOf(format)>=0) score += 5;
+  if ((d.weak_patterns||[]).some(function(w) { return text.indexOf(w.toLowerCase())>=0; })) score -= 10;
+  return Math.max(10, Math.min(100, Math.round(score)));
+}
+
+function bfsCls(s) { return s>=75?'high':s>=55?'mid':'low'; }
+function bfsLbl(s) {
+  // PERBAIKAN 4: BFS sekarang adalah prediksi/hipotesis, bukan verdict.
+  // Label diubah agar tidak over-confident.
+  return s>=75?'Prediksi On-Brand — buktikan dengan posting ↗':
+         s>=55?'Borderline — coba posting & lihat hasilnya ⚠️':
+               'Prediksi Off-Brand — pertimbangkan edit sebelum posting';
+}
+
+// ─── HOME ─────────────────────────────────────────────────
+function calcXPBreakdown() {
+  var posted = S.contents.filter(function(c) { return c.posted; });
+  var activityXP = posted.length * 10;
+  var viewXP = posted.reduce(function(a,c) {
+    return a + Math.floor((parseInt(c.views)||0) / 100) * 30;
+  }, 0);
+  var qualityBonus = posted.reduce(function(a,c) {
+    var v = parseInt(c.views)||0;
+    if (v < 100) return a;
+    var er = ((parseInt(c.likes||0)+parseInt(c.comments||0)+parseInt(c.saves||0))/v)*100;
+    return a + (er >= 8 ? 50 : er >= 5 ? 25 : 0);
+  }, 0);
+  var streakXP = calcStreak() * 5;
+  return {activityXP:activityXP, viewXP:viewXP, qualityBonus:qualityBonus, streakXP:streakXP};
+}
+
+function renderHome() {
+  var xp = calcXP(), lv = getLevel(xp), nextLv = LEVELS[Math.min(lv.n, 4)];
+  var pct = Math.min(100, Math.round((xp-lv.minXP)/(nextLv.maxXP-lv.minXP)*100));
+  var health = calcDNAHealth();
+  S.dna.health = health; saveS();
+  var posted = S.contents.filter(function(c) { return c.posted; });
+  var totalV = posted.reduce(function(a,c) { return a+(parseInt(c.views)||0); }, 0);
+
+  function el(id) { return document.getElementById(id); }
+  if(el('h_brand')) el('h_brand').textContent = S.user.brand || '—';
+  if(el('h_pos')) el('h_pos').textContent = S.dna.positioning ? '"'+S.dna.positioning+'"' : 'Setup Brand DNA untuk melihat positioning.';
+  if(el('h_dna_bar')) el('h_dna_bar').style.width = health+'%';
+  if(el('h_dna_pct')) el('h_dna_pct').textContent = health+'%';
+  if(el('h_lv')) el('h_lv').textContent = lv.n;
+  if(el('h_lvname')) el('h_lvname').textContent = lv.name;
+  if(el('h_xp_bar')) el('h_xp_bar').style.width = pct+'%';
+  if(el('h_xp_cur')) el('h_xp_cur').textContent = xp+' XP';
+  if(el('h_xp_next')) el('h_xp_next').textContent = lv.n<5 ? 'Level '+(lv.n+1)+' →' : 'Max Level 👑';
+  // Tampilkan breakdown XP
+  var bd = calcXPBreakdown();
+  if(el('h_xp_breakdown')) el('h_xp_breakdown').textContent =
+    'Views: '+bd.viewXP+' XP · Kualitas ER: '+bd.qualityBonus+' XP · Posting: '+bd.activityXP+' XP · Streak: '+bd.streakXP+' XP';
+  if(el('hdr_streak')) el('hdr_streak').textContent = calcStreak();
+  if(el('h_streak')) el('h_streak').textContent = calcStreak();
+  if(el('h_total')) el('h_total').textContent = S.contents.length;
+  if(el('h_views')) el('h_views').textContent = fmtNum(totalV);
+
+  renderMissions();
+  renderDNALearned();
+  renderStreakCal();
+  checkDrift();
+}
+
+function renderMissions() {
+  var today = todayStr();
+  var hasGen = S.contents.some(function(c) { return c.createdAt===today; });
+  var hasPosted = S.contents.some(function(c) { return c.posted && c.postedAt===today; });
+  var hasViews = S.contents.filter(function(c) { return c.posted; }).some(function(c) { return parseInt(c.views)>0; });
+  var hasCal = (S.dna.calibrations||[]).some(function(c) { return c.date===today; });
+  var ms = [
+    {icon:'✧',t:'Generate konten on-brand hari ini',s:'Konten disesuaikan Brand DNA',done:hasGen,page:'generate'},
+    {icon:'✅',t:'Tandai konten sudah diposting',s:'Update status ke posted',done:hasPosted,page:'generate'},
+    {icon:'📊',t:'Input views konten terbaru',s:'Data performa mengkalibrasi DNA',done:hasViews,page:'analyze'},
+    {icon:'🧬',t:'Kalibrasi Brand DNA hari ini',s:'Approve/reject konten memperkuat memory',done:hasCal,page:'generate'},
+  ];
+  var done = ms.filter(function(m) { return m.done; }).length;
+  var ct = document.getElementById('h_m_ct'); if(ct) ct.textContent = done+'/4';
+  var list = document.getElementById('h_missions');
+  if(list) list.innerHTML = ms.map(function(m) {
+    return '<div class="mission'+(m.done?' done':'')+'" onclick="showPage(\''+m.page+'\')">'+
+      '<div class="m-icon">'+m.icon+'</div>'+
+      '<div class="m-info"><p class="m-title'+(m.done?' struck':'')+'">'+m.t+'</p><p class="m-sub">'+m.s+'</p></div>'+
+      '<div class="m-check'+(m.done?' ok':'')+'">'+( m.done?'✓':'')+'</div></div>';
+  }).join('');
+}
+
+function renderDNALearned() {
+  var d = S.dna;
+  var ct = document.getElementById('h_dna_ct'); if(ct) ct.textContent = (d.calibrations||[]).length+' sinyal';
+  var el = document.getElementById('h_dna_learned');
+  if (!el) return;
+  if (!(d.best_hooks||[]).length && !(d.best_formats||[]).length && !(d.weak_patterns||[]).length) {
+    el.innerHTML = '<div style="background:var(--s1);border:1px solid var(--border);border-radius:12px;padding:14px;text-align:center;color:var(--muted);font-size:12.5px;">Kalibrasi konten untuk mulai mengisi Brand DNA Memory. Semakin banyak feedback, semakin pintar sistem.</div>';
+    return;
+  }
+  var html = '<div style="background:var(--s1);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin-bottom:12px;">';
+  if ((d.best_hooks||[]).length) {
+    html += '<div style="padding:12px 14px;border-bottom:1px solid var(--border);"><p style="font-size:10px;font-weight:700;color:var(--a5);text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px;">✅ Hook Terbukti Work ('+d.best_hooks.length+')</p>';
+    html += d.best_hooks.slice(-3).map(function(h) { return '<div style="background:rgba(74,222,128,.06);border-radius:7px;padding:7px 10px;margin-bottom:5px;font-size:12px;color:var(--text);">'+esc(h.length>65?h.slice(0,65)+'…':h)+'</div>'; }).join('');
+    html += '</div>';
+  }
+  if ((d.best_formats||[]).length) {
+    html += '<div style="padding:12px 14px;border-bottom:1px solid var(--border);"><p style="font-size:10px;font-weight:700;color:var(--a2);text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px;">⭐ Format Terbaik</p>';
+    html += '<div style="display:flex;flex-wrap:wrap;gap:5px;">'+d.best_formats.map(function(f) { return '<span style="background:rgba(124,98,255,.12);color:#a394ff;font-size:11px;font-weight:600;padding:3px 9px;border-radius:20px;">'+esc(f)+'</span>'; }).join('')+'</div></div>';
+  }
+  if ((d.weak_patterns||[]).length) {
+    html += '<div style="padding:12px 14px;"><p style="font-size:10px;font-weight:700;color:var(--a3);text-transform:uppercase;letter-spacing:.08em;margin-bottom:7px;">❌ Pola Dihindari</p>';
+    html += '<div style="display:flex;flex-wrap:wrap;gap:5px;">'+d.weak_patterns.slice(-4).map(function(p) { return '<span style="background:rgba(255,107,107,.1);color:var(--a3);font-size:11px;padding:3px 9px;border-radius:20px;">'+esc(p)+'</span>'; }).join('')+'</div></div>';
+  }
+  html += '</div>';
+  el.innerHTML = html;
+}
+
+function renderStreakCal() {
+  var cal = document.getElementById('h_streak_cal');
+  var lbl = document.getElementById('h_streak_lbl');
+  if (!cal) return;
+  var now = new Date();
+  var year = now.getFullYear(), month = now.getMonth();
+  var daysInMonth = new Date(year, month+1, 0).getDate();
+  var firstDow = new Date(year, month, 1).getDay();
+  var monOffset = (firstDow + 6) % 7;
+  var today = todayStr();
+  var mNames = ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+  if (lbl) lbl.textContent = mNames[month] + ' · ' + calcStreak() + ' hari streak';
+  var html = '';
+  ['S','S','R','K','J','S','M'].forEach(function(d2) {
+    html += '<div style="font-size:8px;color:var(--muted);text-align:center;font-weight:700;">' + d2 + '</div>';
+  });
+  for (var i = 0; i < monOffset; i++) html += '<div></div>';
+  for (var d = 1; d <= daysInMonth; d++) {
+    var ds = year + '-' + String(month+1).padStart(2,'0') + '-' + String(d).padStart(2,'0');
+    var isToday = ds === today;
+    var didPost = S.posted_days.indexOf(ds) >= 0;
+    var isFuture = new Date(ds) > new Date(today);
+    html += '<div style="aspect-ratio:1;border-radius:4px;background:' + (isFuture?'var(--s2)':didPost?'var(--accent)':'var(--s3)') + ';border:' + (isToday?'2px solid var(--a2)':'1px solid transparent') + ';opacity:' + (isFuture?'.25':'1') + ';display:flex;align-items:center;justify-content:center;" title="' + ds + '">' +
+      '<span style="font-size:8px;color:' + (didPost?'#000':'var(--muted)') + ';font-weight:' + (didPost?'700':'400') + ';">' + (d <= 9 ? d : (didPost ? '' : '')) + '</span>' +
+    '</div>';
+  }
+  cal.innerHTML = html;
+}
+
+function checkDrift() {
+  var recent = S.contents.filter(function(c) { return c.posted; }).slice(-5);
+  var lowBFS = recent.filter(function(c) { return (c.bfs||100) < 65; }).length;
+  var da = document.getElementById('drift'), dm = document.getElementById('drift_msg');
+  if (da && dm) {
+    if (recent.length >= 3 && lowBFS >= 2) {
+      da.style.display = 'flex';
+      dm.textContent = lowBFS+' dari 5 konten terakhir kurang on-brand (BFS <65). Brand kamu mulai bergeser — saatnya kalibrasi ulang.';
+    } else {
+      da.style.display = 'none';
+    }
+  }
+}
+
+function loadRec() {
+  if (!S.onboarded) { toast('Setup Brand DNA dulu', 'err'); return; }
+  setLd('recBtn', true);
+  var lv = getLevel(calcXP());
+  var posted = S.contents.filter(function(c) { return c.posted; });
+  var prompt = 'Berikan 3 rekomendasi actionable HARI INI untuk '+S.user.brand+'.\n' +
+    'Level: '+lv.name+', DNA Health: '+S.dna.health+'%, Konten diposting: '+posted.length+', Total views: '+posted.reduce(function(a,c){return a+(parseInt(c.views)||0);},0)+', Streak: '+calcStreak()+' hari\n\n' +
+    'WAJIB: spesifik ke Brand DNA mereka, bukan saran generic. 3 paragraf pendek, mulai dengan emoji. Langsung actionable hari ini.';
+  aiCall(prompt).then(function(res) {
+    var el = document.getElementById('h_rec');
+    if(el) el.innerHTML = '<p class="ait">'+esc(res)+'</p>';
+    toast('Insight terbaru dimuat ✦', 'ok');
+  }).catch(function(e) { toast(e && e.message ? e.message : 'Gagal. Cek koneksi.', 'err'); })
+  .finally(function() { setLd('recBtn', false); });
+}
+
+// ─── NAVIGATION ──────────────────────────────────────────
+function showPage(id) {
+  document.querySelectorAll('.page').forEach(function(p) { p.classList.remove('active'); });
+  document.querySelectorAll('.nt').forEach(function(n) { n.classList.remove('active'); });
+  var ncb = document.getElementById('nav-generate'); if(ncb) ncb.classList.remove('active');
+  var page = document.getElementById('page-'+id); if(page) page.classList.add('active');
+  var nav = document.getElementById('nav-'+id); if(nav) nav.classList.add('active');
+  if (id==='generate') { var ncb2=document.getElementById('nav-generate'); if(ncb2) ncb2.classList.add('active'); }
+  var ca = document.getElementById('ca'); if(ca) ca.scrollTo(0,0);
+  if (id==='home') renderHome();
+  if (id==='analyze') renderPostedList();
+  if (id==='strategy') renderPlanPage();
+  if (id==='settings') renderSettings();
+}
+
+// ─── PLATFORM HINT ───────────────────────────────────────
+var PLAT_HINTS = {
+  'TikTok': '💡 TikTok: Hook stop-the-scroll dalam 1-2 detik. Caption max 150 karakter. Hashtag mix trending + niche. Durasi ideal 30-60 detik.',
+  'Instagram Reels': '💡 Instagram: Caption boleh lebih panjang & storytelling. Baris pertama harus kuat. Hashtag 5-8 yang sangat relevan. Durasi 15-45 detik.',
+  'YouTube Shorts': '💡 YouTube Shorts: Title = hook paling penting. Sertakan #Shorts. Max 60 detik, retain sampai akhir.',
+  'Shopee Video': '💡 Shopee: Fokus ke benefit produk + urgency. Selalu ada CTA ke toko. Durasi 15-30 detik optimal.',
+};
+function showPlatHint() {
+  var sel = document.getElementById('g_platform');
+  var hint = document.getElementById('platHint');
+  if (sel && hint) { hint.style.display='block'; hint.textContent=PLAT_HINTS[sel.value]||''; }
+}
+
+// ─── TOPIC SUGGESTIONS ───────────────────────────────────
+function suggestTopic() {
+  if (!S.onboarded) { toast('Setup Brand DNA dulu', 'err'); return; }
+  setLd('suggestTopicBtn', true);
+  var d = S.dna, u = S.user;
+  var prompt = 'Berikan 5 ide topik konten yang SANGAT SPESIFIK dan relevan untuk ' + u.brand + ' (niche: ' + (d.micro_niche||u.niche) + ').\n' +
+    'Audience: ' + (u.audience||'umum') + '\n' +
+    'Format yang terbukti: ' + (d.best_formats||[]).join(', ')||'belum ada' + '\n' +
+    'Goals: ' + (u.goals||[]).join(', ') + '\n\n' +
+    'Kriteria topik yang BAGUS:\n' +
+    '- Spesifik dan konkret (bukan "tips fashion" tapi "cara mix match 3 item jadi 7 outfit")\n' +
+    '- Relevan dengan pain point audience ' + u.brand + '\n' +
+    '- Bisa langsung dibuat HARI INI\n' +
+    '- Berpotensi viral di ' + (u.platforms||['TikTok']).join('/') + '\n\n' +
+    'Format output — HANYA 5 topik, satu per baris, tanpa nomor, tanpa penjelasan panjang:\n' +
+    'TOPIK: [topik 1]\nTOPIK: [topik 2]\nTOPIK: [topik 3]\nTOPIK: [topik 4]\nTOPIK: [topik 5]';
+
+  aiCall(prompt, 'Kamu adalah content strategist Indonesia. Berikan topik konten yang sangat spesifik, actionable, dan sesuai brand. Output HANYA format TOPIK: [isi] tanpa teks lain.')
+    .then(function(res) {
+      var topics = res.split('\n')
+        .filter(function(l) { return l.startsWith('TOPIK:'); })
+        .map(function(l) { return l.replace('TOPIK:', '').trim(); })
+        .filter(Boolean)
+        .slice(0, 5);
+
+      if (!topics.length) {
+        topics = res.split('\n').map(function(l){return l.trim();}).filter(function(l){return l.length>5 && !l.startsWith('#');}).slice(0,5);
+      }
+
+      var box = document.getElementById('topicSuggestions');
+      if (box && topics.length) {
+        box.style.display = 'block';
+        box.innerHTML = '<p style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;">💡 Klik untuk pakai</p>' +
+          topics.map(function(t) {
+            return '<div style="background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;margin-bottom:6px;font-size:13px;cursor:pointer;transition:all .15s;" ' +
+              'onclick="useTopic(\'' + t.replace(/'/g, "\\'") + '\')" ' +
+              'onmouseover="this.style.borderColor=\'var(--a2)\'" ' +
+              'onmouseout="this.style.borderColor=\'var(--border)\'">' +
+              esc(t) + '</div>';
+          }).join('');
+        toast('5 ide topik siap! Klik untuk pilih 💡', 'ok');
+      }
+    })
+    .catch(function() {
+      var fallbacks = [
+        u.niche + ': yang aku wish tau dari awal',
+        'Review jujur produk ' + u.niche + ' budget vs premium',
+        'Kesalahan paling umum saat mulai ' + u.niche,
+        'Tips ' + u.niche + ' yang beneran works (bukan teori)',
+        'Before & after: ' + u.niche + ' sebelum dan sesudah tau caranya',
+      ];
+      var box = document.getElementById('topicSuggestions');
+      if (box) {
+        box.style.display = 'block';
+        box.innerHTML = '<p style="font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:7px;">💡 Klik untuk pakai</p>' +
+          fallbacks.map(function(t) {
+            return '<div style="background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:8px 12px;margin-bottom:6px;font-size:13px;cursor:pointer;" onclick="useTopic(\'' + t.replace(/'/g,"\\'") + '\')">' + esc(t) + '</div>';
+          }).join('');
+      }
+      toast('Topik offline tersedia 💡', 'inf');
+    })
+    .finally(function() { setLd('suggestTopicBtn', false); });
+}
+
+function useTopic(topic) {
+  var inp = document.getElementById('g_topic');
+  if (inp) inp.value = topic;
+  var box = document.getElementById('topicSuggestions');
+  if (box) box.style.display = 'none';
+  toast('Topik dipilih: "' + topic.slice(0,40) + '..."', 'ok');
+}
+
+// ─── GENERATE CONTENT ────────────────────────────────────
+function generateContent() {
+  if (!S.onboarded) { toast('Setup Brand DNA dulu', 'err'); return; }
+  setLd('genBtn', true);
+  var u = S.user, d = S.dna;
+
+  var platformEl = document.getElementById('g_platform');
+  var formatEl = document.getElementById('g_format');
+  var topicEl = document.getElementById('g_topic');
+  var countSelEl = document.querySelector('#g_count .tag.sel');
+
+  var platform = platformEl ? platformEl.value : 'TikTok';
+  var format = formatEl ? formatEl.value : 'POV Storytelling';
+  var topic = topicEl ? topicEl.value.trim() : '';
+  var count = countSelEl ? (parseInt(countSelEl.dataset.val) || 1) : 1;
+
+  toast('Generate ' + count + ' konten ' + format + (topic ? ' — "' + topic + '"' : '') + ' ...', 'inf', 2000);
+
+  var platRules = {
+    'TikTok': 'Caption SANGAT PENDEK — max 150 karakter. Baris pertama = hook ulang singkat. Sisanya 1 baris CTA. TIDAK perlu paragraf panjang.',
+    'Instagram Reels': 'Caption 3-5 baris pendek dengan line break antar kalimat. Baris pertama kuat (dipotong sebelum "more"). Boleh lebih personal.',
+    'YouTube Shorts': 'Caption = deskripsi singkat + wajib #Shorts. Hook di awal, nilai di tengah, CTA subscribe di akhir.',
+    'Shopee Video': 'Caption fokus benefit produk + urgency + link store. Tone direct selling tapi tetap personal.',
+  };
+  var captionRule = platRules[platform] || platRules['TikTok'];
+
+  var provenHooks = (d.best_hooks||[]).length > 0
+    ? '\nHook yang TERBUKTI resonan dengan audience ini (pakai POLA yang sama, bukan copy paste):\n' + d.best_hooks.slice(-3).map(function(h,i){return (i+1)+'. "'+h+'"';}).join('\n')
+    : '';
+  var weakPats = (d.weak_patterns||[]).length > 0
+    ? '\nPola yang TERBUKTI TIDAK berhasil — JANGAN ulangi:\n' + d.weak_patterns.slice(-3).join(', ')
+    : '';
+
+  var prompt = 'Kamu adalah ghostwriter untuk '+u.brand+'. Tulis SEPERTI MEREKA — bukan seperti AI.\n\n' +
+    'POSITIONING: "'+d.positioning+'"\nNiche: '+d.micro_niche+'\nCara bicara: '+(u.persona||'seperti teman jujur dan langsung')+'\n' +
+    'Signature words: '+(d.signature_phrases||[]).join(', ')||u.sig+'\nTone: '+(d.tone_keywords||[]).join(', ')+'\n' +
+    'TIDAK PERNAH bahas: '+u.forbidden+'\nAudience: '+u.audience+'\n' +
+    provenHooks + weakPats + '\n\n' +
+    'Buat '+count+' konten '+format+' untuk '+platform+'.\n' +
+    (topic ? 'Topik: "'+topic+'"' : 'Pilih topik sendiri yang paling relevan dengan niche '+d.micro_niche+' dan paling mungkin resonan HARI INI.') + '\n\n' +
+    'ATURAN CAPTION untuk '+platform+':\n'+captionRule+'\n\n' +
+    'PRINSIP WAJIB:\n' +
+    '1. Hook membuat orang BERHENTI scroll — bukan clickbait, tapi menyentuh sesuatu yang audience rasakan\n' +
+    '2. Script terasa seperti ngobrol — ada jeda, ada emosi, ada momen "nah ini dia"\n' +
+    '3. Pakai bahasa Indonesia natural: "gak", "banget", "sih", "ya", "nih", "loh"\n' +
+    '4. Satu pesan utama yang tajam per konten\n' +
+    '5. CTA spesifik dan natural — bukan sekadar "follow aku ya"\n\n' +
+    'VARIASI ANGLE — tiap konten angle berbeda:\n' +
+    '• personal_story: pengalaman pribadi yang credible\n' +
+    '• audience_pov: sudut pandang audience ("kamu pasti pernah")\n' +
+    '• reveal: discovery setelah pengalaman/waktu\n' +
+    '• comparison: perbandingan jujur\n' +
+    '• educational: edukasi singkat langsung bisa diterapkan\n\n' +
+    'Format output PERSIS (jangan tambah teks lain):\n\n' +
+    'KONTEN_START\n' +
+    'HOOK: [max 15 kata, langsung ke inti]\n' +
+    'SCRIPT: [apa yang diucapkan/ditampilkan di video — 3-5 kalimat natural, seperti ngobrol]\n' +
+    'CAPTION: [sesuai aturan '+platform+' di atas]\n' +
+    'HASHTAG: [10 hashtag: 2 trending Indonesia, 4 niche, 2 micro-niche, 2 umum]\n' +
+    'CTA: [1 kalimat spesifik dan natural]\n' +
+    'ANGLE: [satu kata dari: personal_story/audience_pov/reveal/comparison/educational]\n' +
+    'KONTEN_END\n\n' +
+    (count > 1 ? '(ulangi '+count+' kali dengan topik dan angle yang benar-benar berbeda)' : '');
+
+  var filmPrompt = 'Panduan cara membuat konten untuk '+u.brand+' yang pakai style '+u.style+'.\n' +
+    'Format: '+format+', Platform: '+platform+(topic?', Topik: '+topic:'')+'\nBrand persona: '+(u.persona||u.sig||'natural dan jujur')+'\n\n' +
+    'Buat 6 tips PRAKTIS yang langsung bisa dieksekusi HARI INI, pakai bahasa santai:\n' +
+    '1. 📐 Setup kamera & angle (realistis, tanpa alat mahal)\n' +
+    '2. 💡 Pencahayaan (solusi murah & cepat)\n' +
+    '3. ⚡ Opening 3 detik pertama yang kuat\n' +
+    '4. 🗣️ Cara penyampaian spesifik untuk '+u.style+'\n' +
+    '5. ⏱️ Timing & struktur (detik ke berapa ngomong apa)\n' +
+    '6. ✂️ Satu tip editing paling berdampak untuk '+platform;
+
+  Promise.all([aiCall(prompt), aiCall(filmPrompt)])
+    .then(function(results) {
+      var contents = parseContents(results[0], platform, format);
+      if (!contents.length) throw new Error('parse failed');
+      contents.forEach(function(c) { S.contents.push(c); });
+      saveS();
+      renderGenList(contents);
+      var fs = document.getElementById('filmSec'); if(fs) fs.style.display='block';
+      var ft = document.getElementById('filmTxt'); if(ft) ft.textContent=results[1];
+      toast(contents.length+' konten on-brand berhasil digenerate! 🧬', 'ok');
+      renderHome();
+    })
+    .catch(function() {
+      var fb = fallbackContents(count, platform, format, topic);
+      fb.forEach(function(c) { S.contents.push(c); });
+      saveS();
+      renderGenList(fb);
+      var fs = document.getElementById('filmSec'); if(fs) fs.style.display='block';
+      var ft = document.getElementById('filmTxt'); if(ft) ft.textContent=getFallbackFilm(format, u.style);
+      toast('Konten digenerate (mode offline)', 'inf');
+      renderHome();
+    })
+    .finally(function() { setLd('genBtn', false); });
+}
+
+function parseContents(raw, platform, format) {
+  var blocks = raw.split('KONTEN_START').slice(1);
+  var results = [];
+  blocks.forEach(function(block) {
+    var clean = block.split('KONTEN_END')[0].trim();
+    function get(key) {
+      var m = clean.match(new RegExp(key + ':\\s*([\\s\\S]+?)(?=\\n(?:HOOK|SCRIPT|CAPTION|HASHTAG|CTA|ANGLE):|$)'));
+      return m ? m[1].trim() : '';
     }
   });
 }
@@ -341,6 +1108,274 @@ async function boot(){
     show('welcomeView');
   }
 }
+function clearDrafts() {
+  if(!confirm('Hapus semua draft (belum posted)?')) return;
+  S.contents = S.contents.filter(function(c){return c.posted;});
+  saveS(); renderHistList(); renderHome(); toast('Draft dihapus', 'inf');
+}
+
+// ─── SMART REPORT ────────────────────────────────────────
+function generateReport() {
+  var posted = S.contents.filter(function(c){return c.posted&&parseInt(c.views)>0;});
+  if(posted.length<3){toast('Butuh minimal 3 konten dengan views','err');return;}
+  setLd('repBtn',true);
+  var sorted=posted.slice().sort(function(a,b){return (parseInt(b.views)||0)-(parseInt(a.views)||0);});
+  var topHooks=sorted.slice(0,3);
+  var maxV=parseInt(topHooks[0]&&topHooks[0].views)||1;
+  var totalV=posted.reduce(function(a,c){return a+(parseInt(c.views)||0);},0);
+  var avgER=calcAvgER(posted);
+  var fmtMap={};
+  posted.forEach(function(c){fmtMap[c.format]=(fmtMap[c.format]||0)+(parseInt(c.views)||0);});
+  var bestFmt=Object.keys(fmtMap).sort(function(a,b){return fmtMap[b]-fmtMap[a];})[0]||'—';
+  var tagMap={};
+  posted.forEach(function(c){if(parseInt(c.views)>1000)(c.hashtags||[]).forEach(function(h){tagMap[h]=(tagMap[h]||0)+1;});});
+  var topTags=Object.keys(tagMap).sort(function(a,b){return tagMap[b]-tagMap[a];}).slice(0,8);
+  var highBFS=posted.filter(function(c){return (c.bfs||50)>=75;});
+  var lowBFS=posted.filter(function(c){return (c.bfs||50)<55;});
+  var hAvg=highBFS.length?highBFS.reduce(function(a,c){return a+(parseInt(c.views)||0);},0)/highBFS.length:0;
+  var lAvg=lowBFS.length?lowBFS.reduce(function(a,c){return a+(parseInt(c.views)||0);},0)/lowBFS.length:0;
+  var sum=posted.map(function(c){return '"'+c.hook+'" — '+c.views+'v, BFS:'+(c.bfs||50)+', '+c.format;}).join('\n');
+  var prompt='Analisis mendalam performa konten '+S.user.brand+':\n'+sum+'\n\n'+
+    'Rata-rata views BFS tinggi (≥75): '+Math.round(hAvg)+'\nRata-rata views BFS rendah (<55): '+Math.round(lAvg)+'\n\n'+
+    'Berikan analisis SANGAT SPESIFIK:\n1. Pola hook yang paling resonan\n2. Cara meningkatkan BFS rata-rata\n3. Format yang harus difokuskan\n4. 2 action konkret minggu ini\n\n'+
+    'Hubungkan ke Brand DNA: "'+S.dna.positioning+'"';
+  aiCall(prompt).then(function(ai){
+    renderReport(topHooks,maxV,bestFmt,topTags,totalV,avgER,posted.length,ai,hAvg,lAvg);
+    toast('Smart Report berhasil! 📊','ok');
+  }).catch(function(){
+    renderReport(topHooks,maxV,bestFmt,topTags,totalV,avgER,posted.length,'',hAvg,lAvg);
+  }).finally(function(){setLd('repBtn',false);});
+}
+
+function renderReport(topHooks,maxV,bestFmt,topTags,totalV,avgER,total,aiTxt,hAvg,lAvg) {
+  var el=document.getElementById('reportContent'); if(!el) return;
+  el.innerHTML=
+  '<div class="rep-sec"><p class="rep-ttl">📊 Overview</p>' +
+  '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">' +
+  '<div style="text-align:center;background:var(--s2);border-radius:9px;padding:10px;"><p style="font-family:\'Syne\',sans-serif;font-size:20px;font-weight:800;color:var(--accent);">'+fmtNum(totalV)+'</p><p style="font-size:10px;color:var(--muted);">Total Views</p></div>' +
+  '<div style="text-align:center;background:var(--s2);border-radius:9px;padding:10px;"><p style="font-family:\'Syne\',sans-serif;font-size:20px;font-weight:800;color:var(--a2);">'+avgER.toFixed(1)+'%</p><p style="font-size:10px;color:var(--muted);">Avg. ER</p></div>' +
+  '<div style="text-align:center;background:var(--s2);border-radius:9px;padding:10px;"><p style="font-family:\'Syne\',sans-serif;font-size:20px;font-weight:800;">'+total+'</p><p style="font-size:10px;color:var(--muted);">Konten</p></div></div></div>' +
+
+  ((hAvg>0||lAvg>0)?
+  '<div class="rep-sec"><p class="rep-ttl">🧬 Brand DNA Impact</p>' +
+  '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">' +
+  '<div style="background:rgba(74,222,128,.07);border:1px solid rgba(74,222,128,.2);border-radius:9px;padding:11px;text-align:center;"><p style="font-family:\'Syne\',sans-serif;font-size:18px;font-weight:800;color:var(--a5);">'+fmtNum(Math.round(hAvg))+'</p><p style="font-size:10px;color:var(--a5);font-weight:600;">On-Brand ≥75</p></div>' +
+  '<div style="background:rgba(255,107,107,.07);border:1px solid rgba(255,107,107,.2);border-radius:9px;padding:11px;text-align:center;"><p style="font-family:\'Syne\',sans-serif;font-size:18px;font-weight:800;color:var(--a3);">'+fmtNum(Math.round(lAvg))+'</p><p style="font-size:10px;color:var(--a3);font-weight:600;">Off-Brand &lt;55</p></div></div>' +
+  (hAvg>lAvg?'<p style="font-size:11.5px;color:var(--a5);margin-top:8px;text-align:center;">✅ Konten on-brand rata-rata '+Math.round((hAvg/Math.max(lAvg,1)-1)*100)+'% lebih banyak views</p>':'') +
+  '</div>':'') +
+
+  '<div class="rep-sec"><p class="rep-ttl">🎣 Top Hook</p>' +
+  topHooks.map(function(c,i){return '<div class="rep-item"><div class="rep-rank">'+(i+1)+'</div><div class="rep-c"><p class="rep-txt">'+esc(c.hook)+'</p><div class="rep-bar"><div class="rep-bf" style="width:'+((parseInt(c.views)||0)/maxV*100)+'%"></div></div></div><div class="rep-v">'+fmtNum(parseInt(c.views)||0)+'</div></div>';}).join('') +
+  '</div>' +
+
+  '<div class="rep-sec"><p class="rep-ttl">🏆 Format Terbaik</p>' +
+  '<div style="background:rgba(201,255,62,.07);border:1px solid rgba(201,255,62,.2);border-radius:9px;padding:12px;text-align:center;"><p style="font-family:\'Syne\',sans-serif;font-size:17px;font-weight:800;color:var(--accent);">'+esc(bestFmt)+'</p><p style="font-size:11.5px;color:var(--muted);margin-top:3px;">Format dengan total views tertinggi</p></div></div>' +
+
+  (topTags.length?'<div class="rep-sec"><p class="rep-ttl"># Hashtag dari Konten >1K Views</p><div class="tags-row">'+topTags.map(function(h){return '<span class="ht" onclick="copyTxt(\''+h+'\')">'+esc(h)+'</span>';}).join('')+'</div><p style="font-size:10px;color:var(--muted);margin-top:8px;">Klik untuk copy</p></div>':'') +
+
+  (aiTxt?'<div class="rep-sec"><p class="rep-ttl">✦ AI Deep Insight</p><div class="aib"><p class="ait">'+esc(aiTxt)+'</p></div></div>':'');
+}
+
+// ─── MONTHLY ─────────────────────────────────────────────
+function generateMonthly() {
+  if(!S.onboarded){toast('Setup Brand DNA dulu','err');return;}
+  setLd('monthBtn',true);
+  var posted=S.contents.filter(function(c){return c.posted;});
+  var totalV=posted.reduce(function(a,c){return a+(parseInt(c.views)||0);},0);
+  var lv=getLevel(calcXP());
+  var now=new Date();
+  var months=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  var prompt='Buat Laporan Bulanan + Strategi Rebuild untuk '+S.user.brand+':\n' +
+    'Bulan: '+months[now.getMonth()]+' '+now.getFullYear()+'\nLevel: '+lv.name+'\n' +
+    'Konten dibuat: '+S.contents.length+', Diposting: '+posted.length+', Total views: '+totalV+'\n' +
+    'Streak: '+calcStreak()+' hari, DNA Health: '+S.dna.health+'%\n' +
+    'Hook terbukti: '+(S.dna.best_hooks||[]).slice(0,2).join(' | ')||'belum cukup data'+'\n' +
+    'Pola lemah: '+(S.dna.weak_patterns||[]).slice(0,2).join(', ')||'belum ada'+'\n\n' +
+    'Buat laporan:\n1. RECAP bulan ini\n2. BRAND DNA PROGRESS\n3. GAPS\n4. STRATEGI REBUILD bulan baru (5 konkret)\n5. TARGET realistis\n6. Apakah saatnya evolusi niche?';
+  aiCall(prompt).then(function(res){
+    S.monthly=res; saveS();
+    var el=document.getElementById('monthlyContent'); if(!el) return;
+    el.innerHTML='<div style="background:linear-gradient(135deg,rgba(245,200,66,.08),rgba(201,255,62,.04));border:2px solid rgba(245,200,66,.25);border-radius:14px;padding:16px;margin-bottom:14px;">' +
+      '<p style="font-size:10px;font-weight:700;color:var(--a4);text-transform:uppercase;letter-spacing:.12em;margin-bottom:8px;">📅 '+months[now.getMonth()]+' '+now.getFullYear()+' — Laporan Bulanan</p>' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">' +
+      '<div style="background:rgba(0,0,0,.2);border-radius:8px;padding:9px;text-align:center;"><p style="font-family:\'Syne\',sans-serif;font-size:18px;font-weight:800;color:var(--a4);">'+posted.length+'</p><p style="font-size:9.5px;color:var(--muted);">Diposting</p></div>' +
+      '<div style="background:rgba(0,0,0,.2);border-radius:8px;padding:9px;text-align:center;"><p style="font-family:\'Syne\',sans-serif;font-size:18px;font-weight:800;color:var(--a4);">'+fmtNum(totalV)+'</p><p style="font-size:9.5px;color:var(--muted);">Views</p></div>' +
+      '<div style="background:rgba(0,0,0,.2);border-radius:8px;padding:9px;text-align:center;"><p style="font-family:\'Syne\',sans-serif;font-size:18px;font-weight:800;color:var(--a4);">'+S.dna.health+'%</p><p style="font-size:9.5px;color:var(--muted);">DNA Health</p></div></div>' +
+      '<p style="font-size:11px;font-weight:700;color:var(--a4);margin-top:8px;">Level: '+lv.name+'</p></div>' +
+      '<div class="aib mt12"><p class="ait">'+esc(res)+'</p></div>' +
+      '<div style="margin-top:14px;padding:13px;background:rgba(201,255,62,.06);border:1px solid rgba(201,255,62,.18);border-radius:11px;">' +
+      '<p style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:6px;">🔄 Rebuild Bulan Baru</p>' +
+      '<p style="font-size:12.5px;color:var(--t2);line-height:1.55;">Gunakan insight di atas untuk generate konten bulan depan dengan Brand DNA yang lebih tajam.</p>' +
+      '<button class="btn btn-p btn-sm mt8" onclick="showPage(\'generate\')">✦ Generate Konten Baru →</button></div>';
+    toast('Laporan bulanan selesai! 📅','ok');
+  }).catch(function(){toast('Gagal. Cek koneksi.','err');})
+  .finally(function(){setLd('monthBtn',false);});
+}
+
+// ─── STRATEGY PAGE ───────────────────────────────────────
+function renderPlanPage() {
+  var now=new Date();
+  var months=['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  var wl=document.getElementById('weekLbl');
+  if(wl) wl.textContent='Minggu '+Math.ceil(now.getDate()/7)+' — '+months[now.getMonth()]+' '+now.getFullYear();
+  var wc=document.getElementById('weekContent');
+  if(wc&&S.strategy) wc.innerHTML='<div class="aib"><p class="ait">'+esc(S.strategy)+'</p></div>';
+  var ec=document.getElementById('evoContent');
+  if(ec&&S.evolution) ec.innerHTML='<p class="ait">'+esc(S.evolution)+'</p>';
+  renderDNAHealthList();
+}
+
+function renderDNAHealthList() {
+  var d=S.dna;
+  var metrics=[
+    {l:'Positioning Clarity',v:d.positioning?90:10,d:d.positioning?'Positioning terdefinisi':'Belum di-setup'},
+    {l:'Hook Library',v:Math.min(100,(d.best_hooks||[]).length*20),d:(d.best_hooks||[]).length+' hook terbukti'},
+    {l:'Calibration Data',v:Math.min(100,(d.calibrations||[]).length*10),d:(d.calibrations||[]).length+' sinyal kalibrasi'},
+    {l:'Performance Data',v:Math.min(100,S.contents.filter(function(c){return c.posted&&parseInt(c.views)>0;}).length*15),d:S.contents.filter(function(c){return c.posted&&parseInt(c.views)>0;}).length+' konten dengan views'},
+    {l:'Streak Consistency',v:Math.min(100,calcStreak()*7),d:calcStreak()+' hari berturut-turut'},
+  ];
+  var el=document.getElementById('dnaHealthList'); if(!el) return;
+  el.innerHTML=metrics.map(function(m){
+    return '<div style="margin-bottom:11px;">' +
+      '<div style="display:flex;justify-content:space-between;margin-bottom:4px;"><span style="font-size:12.5px;font-weight:600;">'+m.l+'</span><span style="font-size:11px;color:var(--accent);font-weight:700;">'+m.v+'%</span></div>' +
+      '<div class="xp-track"><div class="xp-fill" style="width:'+m.v+'%;background:var(--a2);"></div></div>' +
+      '<p style="font-size:10.5px;color:var(--muted);margin-top:3px;">'+m.d+'</p></div>';
+  }).join('');
+
+  // PERBAIKAN 4: Tampilkan BFS accuracy tracker kalau sudah ada data
+  var bfsBox = document.getElementById('bfsAccuracyBox');
+  var bfsVal = document.getElementById('bfsAccuracyVal');
+  var bfsDesc = document.getElementById('bfsAccuracyDesc');
+  var validations = d.bfs_validations || [];
+  if (bfsBox && bfsVal && validations.length >= 3) {
+    bfsBox.style.display = 'block';
+    var acc = d.bfs_accuracy || 0;
+    var color = acc >= 70 ? 'var(--a5)' : acc >= 50 ? 'var(--a4)' : 'var(--a3)';
+    bfsVal.style.color = color;
+    bfsVal.textContent = acc + '% akurat dari ' + validations.length + ' prediksi';
+    if (bfsDesc) {
+      bfsDesc.textContent = acc >= 70 ? 'BFS cukup reliable — DNA sudah belajar dari datamu.' :
+                            acc >= 50 ? 'BFS perlu lebih banyak data views untuk jadi akurat.' :
+                                        'BFS masih banyak salah — input lebih banyak views untuk kalibrasikan ulang DNA.';
+    }
+  } else if (bfsBox) {
+    bfsBox.style.display = validations.length > 0 ? 'block' : 'none';
+    if (bfsVal) bfsVal.textContent = 'Butuh minimal 3 data views untuk hitung akurasi';
+  }
+}
+
+function generateWeekly() {
+  if(!S.onboarded){toast('Setup Brand DNA dulu','err');return;}
+  setLd('weekBtn',true);
+  var lv=getLevel(calcXP());
+  var posted=S.contents.filter(function(c){return c.posted;});
+  var prompt='Buat strategi konten mingguan SANGAT KONKRET untuk '+S.user.brand+':\n' +
+    'Level: '+lv.name+', DNA Health: '+S.dna.health+'%, Goals: '+S.user.goals.join(', ')+'\n' +
+    'Platform: '+S.user.platforms.join(', ')+', Waktu/hari: '+S.user.time+'\n' +
+    'Format terbaik: '+(S.dna.best_formats||[]).join(', ')||'belum ada'+'\n' +
+    'Hook terbukti: '+(S.dna.best_hooks||[]).slice(0,2).join(' | ')||'belum ada'+'\n' +
+    'Pola lemah (hindari): '+(S.dna.weak_patterns||[]).join(', ')||'belum ada'+'\n\n' +
+    'Berikan:\n1. FOKUS BRAND DNA minggu ini (1 kalimat)\n2. RENCANA HARIAN (Sen-Min: jenis + hook template + platform)\n3. 3 QUICK WIN yang langsung perkuat brand signal\n4. SINYAL yang harus dikirimkan ke algoritma minggu ini';
+  aiCall(prompt).then(function(res){
+    S.strategy=res; saveS();
+    var wc=document.getElementById('weekContent');
+    if(wc) wc.innerHTML='<div class="aib"><p class="ait">'+esc(res)+'</p></div>';
+    toast('Strategi minggu ini siap 🗺️','ok');
+  }).catch(function(){toast('Gagal. Cek koneksi.','err');})
+  .finally(function(){setLd('weekBtn',false);});
+}
+
+function generateEvo() {
+  if(!S.onboarded){toast('Setup Brand DNA dulu','err');return;}
+  setLd('evoBtn',true);
+  var lv=getLevel(calcXP());
+  var totalV=S.contents.filter(function(c){return c.posted;}).reduce(function(a,c){return a+(parseInt(c.views)||0);},0);
+  var prompt='Analisis creator evolution path untuk '+S.user.brand+':\n' +
+    'Positioning: "'+S.dna.positioning+'"\nMicro-niche: '+S.dna.micro_niche+'\nLevel: '+lv.name+', DNA Health: '+S.dna.health+'%\n' +
+    'Total hari posting: '+S.posted_days.length+', Total views: '+totalV+'\n' +
+    'Goals: '+S.user.goals.join(', ')+'\n\n' +
+    'Berikan:\n1. Apakah micro-niche perlu dipertajam?\n2. Kapan pivot niche/platform?\n3. Apa yang harus dilakukan untuk naik ke '+LEVELS[Math.min(lv.n,4)].name+'?\n4. Jalur monetisasi paling realistis 3 bulan\n5. Sinyal mana yang masih lemah ke algoritma?';
+  aiCall(prompt).then(function(res){
+    S.evolution=res; saveS();
+    var ec=document.getElementById('evoContent');
+    if(ec) ec.innerHTML='<p class="ait">'+esc(res)+'</p>';
+    toast('Evolution plan selesai 🌱','ok');
+  }).catch(function(){toast('Gagal. Cek koneksi.','err');})
+  .finally(function(){setLd('evoBtn',false);});
+}
+
+// ─── SETTINGS ────────────────────────────────────────────
+function renderSettings() {
+  var u=S.user, d=S.dna;
+  var sb=document.getElementById('s_brand'); if(sb) sb.textContent=u.brand||'—';
+  var sn=document.getElementById('s_niche'); if(sn) sn.textContent=u.niche||'—';
+  var sa=document.getElementById('s_aud'); if(sa) sa.textContent=u.audience||'—';
+  var sf=document.getElementById('s_forb'); if(sf) sf.textContent=u.forbidden||'—';
+  var sp=document.getElementById('s_pos'); if(sp) sp.textContent=d.positioning?'"'+d.positioning+'"':'—';
+}
+
+function openEditSh() {
+  var u=S.user;
+  var eb=document.getElementById('ep_brand'); if(eb) eb.value=u.brand||'';
+  var en=document.getElementById('ep_niche'); if(en) en.value=u.niche||'';
+  var ep=document.getElementById('ep_product'); if(ep) ep.value=u.product||'';
+  var ea=document.getElementById('ep_audience'); if(ea) ea.value=u.audience||'';
+  var ef=document.getElementById('ep_forbidden'); if(ef) ef.value=u.forbidden||'';
+  var es=document.getElementById('ep_sig'); if(es) es.value=u.sig||'';
+  openOv('editSh');
+}
+
+function saveProfile() {
+  S.user.brand = (document.getElementById('ep_brand')||{}).value || S.user.brand;
+  S.user.niche = (document.getElementById('ep_niche')||{}).value || S.user.niche;
+  S.user.product = (document.getElementById('ep_product')||{}).value || '';
+  S.user.audience = (document.getElementById('ep_audience')||{}).value || '';
+  S.user.forbidden = (document.getElementById('ep_forbidden')||{}).value || '';
+  S.user.sig = (document.getElementById('ep_sig')||{}).value || '';
+  saveS(); closeOv('editSh'); renderSettings(); refreshApp();
+  toast('Profil disimpan!', 'ok');
+}
+
+function regenDNA() {
+  toast('Regenerating Brand DNA...','inf');
+  buildDNA();
+}
+
+function exportData() {
+  var blob=new Blob([JSON.stringify(S,null,2)],{type:'application/json'});
+  var url=URL.createObjectURL(blob);
+  var a=document.createElement('a');
+  a.href=url; a.download='brand-dna-'+(S.user.brand||'data')+'-'+todayStr()+'.json';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+  toast('Data berhasil diexport 📤','ok');
+}
+
+async function resetApp() {
+  if(confirm('LOGOUT DAN RESET SEMUA DATA LOKAL?')) {
+    await supabase.auth.signOut();
+    localStorage.removeItem(SK); 
+    location.reload();
+  }
+}
+
+// ─── INIT ────────────────────────────────────────────────
+// Semua fungsi sudah terdefinisi, baru panggil checkUser
+function _bindAuthButtons() {
+  // Hindari double submit: tombol sudah pakai inline onclick.
+  // Di sini hanya pasang shortcut Enter pada input password.
+  var pw = document.getElementById('authPassword');
+  if (pw && !pw._bound) {
+    pw._bound = true;
+    pw.addEventListener('keydown', function(ev){
+      if (ev.key === 'Enter') { ev.preventDefault(); handleLogin(); }
+    });
+  }
+}
+
+// Tangkap error yang biasanya silent di mobile
+window.addEventListener('error', function(e){ console.error('[GlobalError]', e.message, e.filename, e.lineno); });
+window.addEventListener('unhandledrejection', function(e){ console.error('[UnhandledRejection]', e.reason); });
 
 boot();
 </script>
