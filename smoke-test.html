@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smoke Test Supabase</title>
+  <style>body{font-family:Arial;background:#0a0a0f;color:#fff;padding:24px}button{padding:10px 12px;margin-right:8px}pre{background:#12121a;padding:12px;border-radius:8px;white-space:pre-wrap}</style>
+</head>
+<body>
+  <h2>Smoke Test Auth + DNA + Content</h2>
+  <p>Pastikan kamu sudah login via <code>auth.html</code>.</p>
+  <button id="btnRun">Run Smoke Test</button>
+  <pre id="out">Idle...</pre>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="js/supabaseclient.js"></script>
+  <script src="js/dna-content-crud.js"></script>
+  <script>
+    const out = document.getElementById('out');
+    const log = (x) => { out.textContent += '\n' + x; };
+
+    document.getElementById('btnRun').onclick = async () => {
+      out.textContent = 'Starting...';
+      try {
+        const auth = await window.AppSupabase.requireAuth();
+        if (!auth.user) throw new Error('Belum login');
+        log('✅ Auth user: ' + auth.user.email);
+
+        const brand = await window.DNACRUD.upsertBrandDNA({
+          dna_mode: 'brand',
+          brand_name: 'SmokeTest Brand',
+          niche: 'Testing',
+          dna_profile: { source: 'smoke-test' }
+        });
+        log('✅ DNA upsert: ' + brand.id);
+
+        const content = await window.ContentCRUD.create({
+          brand_id: brand.id,
+          hook: 'Smoke test hook',
+          topic: 'Testing',
+          status: 'idea',
+          source: 'ai',
+          dna_alignment_score: 88
+        });
+        log('✅ Content create: ' + content.id);
+
+        const list = await window.ContentCRUD.listByBrand(brand.id);
+        log('✅ Content list count: ' + list.length);
+        log('🎉 Smoke test selesai');
+      } catch (e) {
+        log('❌ Error: ' + e.message);
+      }
+    };
+  </script>
+</body>
+</html>
