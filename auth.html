@@ -12,10 +12,22 @@
     .btn{background:#c8ff3e;color:#000;width:100%;margin-top:6px}
     .muted{color:#a0a0b8;font-size:12px}
     h2{font-family:'Arial Black',Arial,sans-serif}
+    details{margin-bottom:12px;background:#1a1a26;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:10px}
+    summary{cursor:pointer}
+    .btn-ghost{background:#1a1a26;color:#fff;border:1px solid rgba(255,255,255,.2)}
   </style>
 </head>
 <body>
   <div class="wrap">
+    <details>
+      <summary>⚙️ Konfigurasi Supabase (jika muncul \"client belum siap\")</summary>
+      <div style="margin-top:10px">
+        <input id="cfg_url" placeholder="https://xxxx.supabase.co" />
+        <input id="cfg_key" placeholder="anon key" />
+        <button class="btn btn-ghost" id="btnSaveCfg">Simpan Konfigurasi</button>
+      </div>
+    </details>
+
     <h2>Register</h2>
     <input id="reg_name" placeholder="Nama lengkap" />
     <input id="reg_wa" placeholder="No WhatsApp" />
@@ -38,6 +50,24 @@
   <script src="js/auth-flow.js"></script>
   <script>
     const msg = document.getElementById('authMsg');
+    const cfgUrl = document.getElementById('cfg_url');
+    const cfgKey = document.getElementById('cfg_key');
+    const cfgBtn = document.getElementById('btnSaveCfg');
+
+    if (!window.AppSupabase?.isReady) {
+      msg.textContent = 'Supabase client belum siap. Isi konfigurasi di atas dulu.';
+    }
+
+    cfgBtn.onclick = () => {
+      try {
+        window.AppSupabase.configure({
+          url: cfgUrl.value,
+          anonKey: cfgKey.value
+        });
+      } catch (e) {
+        msg.textContent = `Konfigurasi gagal: ${e.message}`;
+      }
+    };
 
     document.getElementById('btnRegister').onclick = async () => {
       try {

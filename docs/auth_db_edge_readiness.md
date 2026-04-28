@@ -34,6 +34,9 @@ Gunakan salah satu cara:
    - `HARDCODED_SUPABASE_URL`
    - `HARDCODED_SUPABASE_ANON_KEY`
 
+Catatan:
+- Di `auth.html` sekarang ada panel **Konfigurasi Supabase** untuk menyimpan URL + anon key ke `localStorage` jika muncul pesan \"Supabase client belum siap\".
+
 ## 4) Uji Manual End-to-End (UI)
 
 ### A. Register/Login
