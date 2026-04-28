@@ -75,10 +75,28 @@
       </div>
 
       <div class="card">
-        <h2>Generate Konten</h2>
-        <label>Topik</label><input id="topicInput" placeholder="Kosongkan biar AI pilih" />
-        <button id="genBtn" class="btn" style="margin-top:10px">✦ Generate 3 Ide</button>
-        <div id="ideas" class="list" style="margin-top:10px"></div>
+        <div class="row" style="margin-bottom:8px">
+          <button id="tabGenBtn" class="btn">Generate</button>
+          <button id="tabHistBtn" class="btn2">Riwayat</button>
+          <button id="tabAnBtn" class="btn2">Analitik</button>
+        </div>
+
+        <div id="tabGen">
+          <h2>Generate Konten</h2>
+          <label>Topik</label><input id="topicInput" placeholder="Kosongkan biar AI pilih" />
+          <button id="genBtn" class="btn" style="margin-top:10px">✦ Generate 3 Ide</button>
+          <div id="ideas" class="list" style="margin-top:10px"></div>
+        </div>
+
+        <div id="tabHist" class="hidden">
+          <h2>Riwayat Konten</h2>
+          <div id="histList" class="list"></div>
+        </div>
+
+        <div id="tabAn" class="hidden">
+          <h2>Analitik Ringkas</h2>
+          <div id="analyticsBox" class="list"></div>
+        </div>
       </div>
     </section>
   </div>
@@ -121,11 +139,38 @@ function renderApp(){
   document.getElementById('appBrand').textContent = S.user.brand || 'Creator';
   document.getElementById('appPos').textContent = S.dna.positioning || 'DNA belum dibuat.';
   document.getElementById('modeTag').textContent = S.mode === 'auth' ? 'CLOUD MODE' : 'LOCAL MODE';
+
+  const ideas = (S.ideas||[]).map((it)=> typeof it==='string' ? {text:it,createdAt:Date.now(),posted:false,views:0} : it);
+  S.ideas = ideas;
+
   const box=document.getElementById('ideas');
-  box.innerHTML = (S.ideas||[]).map((x,i)=>`<div class="card"><b>Ide ${i+1}</b><p>${escapeHtml(x)}</p></div>`).join('');
+  box.innerHTML = ideas.slice().reverse().map((x,i)=>`<div class="card"><b>Ide</b><p>${escapeHtml(x.text)}</p><p class="small">${fmtDate(x.createdAt)} · ${x.posted?'Posted':'Draft'} · ${x.views||0} views</p></div>`).join('');
+
+  const hist = document.getElementById('histList');
+  hist.innerHTML = ideas.length ? ideas.slice().reverse().map((x,idx)=>{
+    const realIndex = ideas.length-1-idx;
+    return `<div class="card">
+      <p>${escapeHtml(x.text)}</p>
+      <div class="row">
+        <button class="btn2" data-post="${realIndex}">${x.posted?'✅ Posted':'Tandai Posted'}</button>
+        <input data-views="${realIndex}" type="number" placeholder="views" value="${x.views||0}" style="max-width:120px" />
+        <button class="btn2" data-savev="${realIndex}">Simpan</button>
+      </div>
+    </div>`;
+  }).join('') : '<p class="small">Belum ada ide.</p>';
+
+  const posted = ideas.filter(x=>x.posted);
+  const totalViews = posted.reduce((a,c)=>a+(parseInt(c.views)||0),0);
+  const avgViews = posted.length ? Math.round(totalViews/posted.length) : 0;
+  document.getElementById('analyticsBox').innerHTML = `
+    <div class="card"><b>Total Ide</b><p>${ideas.length}</p></div>
+    <div class="card"><b>Total Posted</b><p>${posted.length}</p></div>
+    <div class="card"><b>Total Views</b><p>${totalViews}</p></div>
+    <div class="card"><b>Rata-rata Views/Posted</b><p>${avgViews}</p></div>`;
 }
 
 function escapeHtml(s){ return String(s||'').replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[m])); }
+function fmtDate(ts){ const d=new Date(ts||Date.now()); return d.toLocaleDateString('id-ID')+' '+d.toLocaleTimeString('id-ID',{hour:'2-digit',minute:'2-digit'}); }
 
 function buildLocalDNA(){
   const b=S.user.brand||'Brand'; const n=S.user.niche||'niche ini'; const a=S.user.audience||'audiens';
@@ -195,7 +240,7 @@ async function doLogin(){
     if(r.error) throw r.error;
     S.mode='auth'; saveState();
     await syncCloud();
-    renderApp(); show('appView'); toast('Login berhasil 👋','ok');
+    renderApp(); show('appView'); openTab('gen'); toast('Login berhasil 👋','ok');
   } catch(e){ toast(authErr(e),'err'); }
   finally{ btn.disabled=false; }
 }
@@ -214,7 +259,7 @@ async function testAuth(){
 
 function localMode(){
   if(!S.onboarded){ toast('Isi DNA dulu sebelum masuk mode lokal','err'); show('onboardView'); return; }
-  S.mode='guest'; saveState(); renderApp(); show('appView'); toast('Mode lokal aktif','ok');
+  S.mode='guest'; saveState(); renderApp(); show('appView'); openTab('gen'); toast('Mode lokal aktif','ok');
 }
 
 async function genIdeas(){
@@ -225,7 +270,7 @@ async function genIdeas(){
     let out='';
     try { out = await aiCall(prompt); }
     catch(e){ out = `Tips praktis ${S.user.niche}\nKesalahan umum ${S.user.niche}\nReview jujur ${topic||S.user.niche}`; }
-    S.ideas = out.split('\n').map(x=>x.trim()).filter(Boolean).slice(0,3);
+    S.ideas = out.split('\n').map(x=>x.trim()).filter(Boolean).slice(0,3).map(t=>({text:t,createdAt:Date.now(),posted:false,views:0})).concat(S.ideas||[]);
     saveState(); renderApp();
   } finally { btn.disabled=false; }
 }
@@ -243,6 +288,15 @@ async function logout(){
   S.mode='guest'; saveState(); show('welcomeView'); toast('Logout selesai','ok');
 }
 
+function openTab(name){
+  document.getElementById('tabGen').classList.toggle('hidden', name!=='gen');
+  document.getElementById('tabHist').classList.toggle('hidden', name!=='hist');
+  document.getElementById('tabAn').classList.toggle('hidden', name!=='an');
+  document.getElementById('tabGenBtn').className = name==='gen' ? 'btn' : 'btn2';
+  document.getElementById('tabHistBtn').className = name==='hist' ? 'btn' : 'btn2';
+  document.getElementById('tabAnBtn').className = name==='an' ? 'btn' : 'btn2';
+}
+
 function bind(){
   document.getElementById('startBtn').addEventListener('click',()=>show('onboardView'));
   document.getElementById('openAuthBtn').addEventListener('click',()=>show('authView'));
@@ -254,7 +308,25 @@ function bind(){
   document.getElementById('localBtn').addEventListener('click',localMode);
   document.getElementById('genBtn').addEventListener('click',genIdeas);
   document.getElementById('logoutBtn').addEventListener('click',logout);
+  document.getElementById('tabGenBtn').addEventListener('click',()=>openTab('gen'));
+  document.getElementById('tabHistBtn').addEventListener('click',()=>openTab('hist'));
+  document.getElementById('tabAnBtn').addEventListener('click',()=>openTab('an'));
   document.getElementById('passInput').addEventListener('keydown',(e)=>{ if(e.key==='Enter') doLogin(); });
+
+  document.addEventListener('click', (e)=>{
+    const p = e.target.getAttribute('data-post');
+    if (p !== null) {
+      const idx = parseInt(p,10);
+      if (S.ideas[idx]) { S.ideas[idx].posted = true; saveState(); renderApp(); }
+      return;
+    }
+    const sv = e.target.getAttribute('data-savev');
+    if (sv !== null) {
+      const idx = parseInt(sv,10);
+      const inp = document.querySelector('input[data-views="'+idx+'"]');
+      if (S.ideas[idx] && inp) { S.ideas[idx].views = parseInt(inp.value)||0; saveState(); renderApp(); }
+    }
+  });
 }
 
 async function boot(){
@@ -262,7 +334,7 @@ async function boot(){
   if(S.onboarded){
     if(S.mode==='auth' && supabase){
       const ses=await supabase.auth.getSession();
-      if(ses && ses.data && ses.data.session){ renderApp(); show('appView'); return; }
+      if(ses && ses.data && ses.data.session){ renderApp(); show('appView'); openTab('gen'); return; }
     }
     show('authView');
   } else {
