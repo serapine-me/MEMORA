@@ -262,6 +262,40 @@ body {
 .stat-change.up { color: var(--accent); }
 .stat-change.down { color: var(--accent3); }
 
+/* DASHBOARD COMPACT */
+.dashboard-wrap { display: flex; flex-direction: column; gap: 16px; }
+.dashboard-header h2 { font-size: 20px; line-height: 1.25; }
+.dashboard-stats { grid-template-columns: repeat(4, minmax(0,1fr)); gap: 12px; margin-bottom: 0 !important; }
+.dashboard-stats .stat-card { padding: 14px 16px; border-radius: 10px; }
+.dashboard-stats .stat-label { font-size: 10px; margin-bottom: 6px; }
+.dashboard-stats .stat-value { font-size: 22px; margin-bottom: 4px; }
+.dashboard-stats .stat-change { font-size: 11px; }
+.compact-card { padding: 16px; border-radius: 10px; }
+.compact-card .card-subtitle { margin-bottom: 10px; font-size: 12px; }
+.compact-row { margin-bottom: 0 !important; gap: 12px; }
+.mini-insights { display: grid; grid-template-columns: repeat(3, minmax(0,1fr)); gap: 10px; }
+.mini-insight {
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+}
+.mini-insight p:first-child { font-size: 10px; color: var(--muted); margin-bottom: 3px; }
+.mini-insight p:last-child { font-size: 12px; font-weight: 600; color: var(--text); }
+.reco-list { display: grid; gap: 8px; }
+.reco-item {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.reco-item span { font-size: 16px; line-height: 1; margin-top: 2px; }
+.reco-item p { font-size: 12px; line-height: 1.45; color: var(--muted); }
+.reco-item b { color: var(--text); font-weight: 600; }
+
 /* BADGE */
 .badge {
   display: inline-flex;
@@ -667,11 +701,14 @@ body {
 @media (max-width: 900px) {
   .grid-4 { grid-template-columns: 1fr 1fr; }
   .grid-3 { grid-template-columns: 1fr; }
+  .dashboard-stats { grid-template-columns: 1fr 1fr; }
+  .mini-insights { grid-template-columns: 1fr; }
 }
 @media (max-width: 700px) {
   .sidebar { display: none; }
   .main { margin-left: 0; }
   .grid-2, .grid-4 { grid-template-columns: 1fr; }
+  .dashboard-stats { grid-template-columns: 1fr; }
   .page { padding: 20px 16px; }
 }
 </style>
@@ -686,6 +723,7 @@ body {
   <div class="welcome-actions">
     <button class="btn btn-primary btn-large" onclick="startOnboarding()">🚀 Mulai Gratis</button>
     <button class="btn btn-ghost btn-large" onclick="enterApp()">Masuk ke Dashboard →</button>
+    <button class="btn btn-ghost btn-large" onclick="window.location.href='auth.html'">🔐 Register / Login</button>
   </div>
 </div>
 
@@ -892,13 +930,14 @@ body {
 
     <!-- PAGE: DASHBOARD -->
     <div class="page active" id="page-dashboard">
-      <div style="margin-bottom:24px">
+      <div class="dashboard-wrap">
+      <div class="dashboard-header">
         <p style="font-size:13px;color:var(--muted);margin-bottom:4px">Selamat datang kembali 👋</p>
         <h2 style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800" id="dashGreeting">Creator, siap bikin konten hari ini?</h2>
       </div>
 
       <!-- STATS ROW -->
-      <div class="grid-4" style="margin-bottom:24px">
+      <div class="grid-4 dashboard-stats">
         <div class="stat-card">
           <p class="stat-label">Posting Streak</p>
           <p class="stat-value">14</p>
@@ -922,7 +961,7 @@ body {
       </div>
 
       <!-- PHASE SYSTEM -->
-      <div class="card" style="margin-bottom:20px">
+      <div class="card compact-card">
         <p class="card-title">🗺️ Creator Growth Phase</p>
         <p class="card-subtitle">Kamu sedang di fase <strong style="color:var(--accent)">Growing</strong> — terus tingkatkan konsistensi!</p>
         <div class="phase-list">
@@ -941,9 +980,9 @@ body {
         </div>
       </div>
 
-      <div class="grid-2" style="margin-bottom:20px">
+      <div class="grid-2 compact-row">
         <!-- TODAY TASK -->
-        <div class="card">
+        <div class="card compact-card">
           <p class="card-title">📅 Task Hari Ini</p>
           <p class="card-subtitle">AI telah menyiapkan rencana konten kamu</p>
           <div class="content-card" onclick="openContentModal('POV: Kamu beli produk mahal tapi salah pilih — ini yang aku pelajari 😅', 'TikTok · Talking Head · 30-60 detik')">
@@ -963,7 +1002,7 @@ body {
         </div>
 
         <!-- PERFORMANCE SNAP -->
-        <div class="card">
+        <div class="card compact-card">
           <p class="card-title">📊 Performa Mingguan</p>
           <p class="card-subtitle">Views 7 hari terakhir</p>
           <div class="bar-chart">
@@ -997,16 +1036,16 @@ body {
             </div>
           </div>
           <div class="divider"></div>
-          <div style="display:flex;gap:12px;flex-wrap:wrap">
-            <div>
+          <div class="mini-insights">
+            <div class="mini-insight">
               <p style="font-size:11px;color:var(--muted)">Best Format</p>
               <p style="font-size:13px;font-weight:600;color:var(--text)">Storytelling</p>
             </div>
-            <div>
+            <div class="mini-insight">
               <p style="font-size:11px;color:var(--muted)">Best Time</p>
               <p style="font-size:13px;font-weight:600;color:var(--text)">18:00 - 20:00</p>
             </div>
-            <div>
+            <div class="mini-insight">
               <p style="font-size:11px;color:var(--muted)">Best Hook</p>
               <p style="font-size:13px;font-weight:600;color:var(--text)">POV Style</p>
             </div>
@@ -1015,34 +1054,24 @@ body {
       </div>
 
       <!-- AI RECOMMENDATION -->
-      <div class="card">
+      <div class="card compact-card">
         <p class="card-title">✦ AI Smart Recommendations</p>
         <p class="card-subtitle">Berdasarkan data performa dan trend terkini kamu</p>
-        <div class="ai-block">
-          <div style="display:flex;flex-direction:column;gap:12px">
-            <div style="display:flex;gap:12px;align-items:flex-start">
-              <span style="font-size:20px">🎯</span>
-              <div>
-                <p style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px">Fokus POV Storytelling minggu ini</p>
-                <p style="font-size:12px;color:var(--muted)">Format ini menghasilkan rata-rata 3x views lebih tinggi di niche kamu. Trending di TikTok Indonesia saat ini.</p>
-              </div>
-            </div>
-            <div style="display:flex;gap:12px;align-items:flex-start">
-              <span style="font-size:20px">⏰</span>
-              <div>
-                <p style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px">Upload jam 19.00 - 20.30 WIB</p>
-                <p style="font-size:12px;color:var(--muted)">Analisis engagement rate kamu tertinggi di jam ini. Konsisten selama 2 minggu ke depan.</p>
-              </div>
-            </div>
-            <div style="display:flex;gap:12px;align-items:flex-start">
-              <span style="font-size:20px">💡</span>
-              <div>
-                <p style="font-size:13px;font-weight:600;color:var(--text);margin-bottom:2px">Tambah 1 konten edukasi per minggu</p>
-                <p style="font-size:12px;color:var(--muted)">Audience kamu memiliki save rate 45% lebih tinggi pada konten edukasi. Ini membangun authority.</p>
-              </div>
-            </div>
+        <div class="reco-list">
+          <div class="reco-item">
+            <span>🎯</span>
+            <p><b>Fokus POV Storytelling minggu ini.</b> Format ini rata-rata memberi 3x views lebih tinggi untuk niche kamu.</p>
+          </div>
+          <div class="reco-item">
+            <span>⏰</span>
+            <p><b>Upload jam 19.00–20.30 WIB.</b> Engagement kamu paling stabil di jam ini selama 14 hari terakhir.</p>
+          </div>
+          <div class="reco-item">
+            <span>💡</span>
+            <p><b>Tambah 1 konten edukasi per minggu.</b> Save rate konten edukasi kamu lebih tinggi dan bagus untuk authority.</p>
           </div>
         </div>
+      </div>
       </div>
     </div>
 
@@ -1946,6 +1975,10 @@ body {
   </main>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/supabaseclient.js"></script>
+<script src="js/auth-flow.js"></script>
+<script src="js/dna-content-crud.js"></script>
 <script>
 // ===== STATE =====
 let currentStep = 1;
@@ -2025,6 +2058,7 @@ function finishOnboarding() {
   document.getElementById('positioningText').textContent = `Specialist dalam konten edukasi ${userData.niche} yang relatable untuk ibu muda modern Indonesia`;
   document.getElementById('dashGreeting').textContent = `${userData.brand}, siap bikin konten hari ini?`;
   buildStreakGrid();
+  persistDNAFromOnboarding();
 }
 
 // ===== NAVIGATION =====
@@ -2122,7 +2156,8 @@ function generateDailyContent() {
     'Kenapa 90% creator Indonesia stuck di bawah 10K followers (dan cara keluar dari situ)',
     'Ini yang aku ubah dan langsung bikin views naik 3x dalam seminggu'
   ];
-  alert('✦ Generating 3 konten baru dengan AI...\n\n' + hooks[Math.floor(Math.random()*hooks.length)]);
+  const hook = hooks[Math.floor(Math.random()*hooks.length)];
+  createContentFromHook(hook);
 }
 
 function analyzePerformance() {
@@ -2158,6 +2193,51 @@ function regenerateContent() {
 function adaptHook(el) {
   const hook = el.querySelector('p').textContent;
   openContentModal(hook.replace('[TOPIK]', userData.niche).replace('[KEPUTUSAN]', `belajar tentang ${userData.niche}`).replace('[KESALAHAN]', `salah pilih produk`).replace('[HARGA]', 'Rp50.000').replace('[PRODUK]', userData.niche), 'TikTok · Hook Template · 30-60 detik');
+}
+
+// ===== BACKEND INTEGRATION (FLOW.md compliant) =====
+async function persistDNAFromOnboarding() {
+  if (!window.DNACRUD) return;
+  try {
+    await window.DNACRUD.upsertBrandDNA({
+      dna_mode: 'brand',
+      brand_name: userData.brand,
+      niche: userData.niche,
+      dna_profile: {
+        positioning: `Specialist konten ${userData.niche}`,
+        creator_name: userData.name
+      }
+    });
+    console.log('DNA tersimpan ke Supabase');
+  } catch (err) {
+    console.warn('DNA belum tersimpan ke Supabase:', err.message);
+  }
+}
+
+async function createContentFromHook(hook) {
+  if (!window.DNACRUD || !window.ContentCRUD) {
+    alert('✦ Generating 3 konten baru dengan AI...\n\n' + hook);
+    return;
+  }
+
+  try {
+    const brand = await window.DNACRUD.getMyBrand();
+    if (!brand) {
+      alert('Brand DNA belum ada. Silakan register/login lalu onboarding ulang.');
+      return;
+    }
+    await window.ContentCRUD.create({
+      brand_id: brand.id,
+      hook,
+      topic: userData.niche,
+      status: 'idea',
+      source: 'ai',
+      dna_alignment_score: 75
+    });
+    alert('Konten baru berhasil disimpan ke database ✅');
+  } catch (err) {
+    alert('Gagal simpan konten: ' + err.message);
+  }
 }
 
 // ===== TAGS =====
