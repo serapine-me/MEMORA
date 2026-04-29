@@ -10,7 +10,7 @@
     input{width:100%;margin-bottom:10px;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,.15);background:#1a1a26;color:#f0f0f8}
     button{padding:10px 14px;border:none;border-radius:8px;cursor:pointer}
     .btn{background:#c8ff3e;color:#000;width:100%;margin-top:6px}
-    .muted{color:#a0a0b8;font-size:12px}
+    .muted{color:#a0a0b8;font-size:12px;white-space:pre-line}
   </style>
 </head>
 <body>
@@ -38,7 +38,29 @@
   <script>
     const msg = document.getElementById('authMsg');
 
+    function setupHelpText() {
+      msg.textContent = [
+        'Setup wajib (sekali saja) di Console browser:',
+        "localStorage.setItem('SUPABASE_URL', 'https://PROJECT_REF.supabase.co');",
+        "localStorage.setItem('SUPABASE_ANON_KEY', 'ANON_KEY_KAMU');",
+        'Setelah itu refresh halaman (Ctrl+R).'
+      ].join('\n');
+    }
+
+    function validateAuthReady() {
+      if (!window.AuthFlow) {
+        msg.textContent = 'Script auth-flow.js belum termuat. Pastikan file js/auth-flow.js ada dan bisa diakses.';
+        return false;
+      }
+      if (!window.AppSupabase || !window.AppSupabase.isReady) {
+        setupHelpText();
+        return false;
+      }
+      return true;
+    }
+
     document.getElementById('btnRegister').onclick = async () => {
+      if (!validateAuthReady()) return;
       try {
         await window.AuthFlow.register({
           full_name: document.getElementById('reg_name').value,
@@ -53,6 +75,7 @@
     };
 
     document.getElementById('btnLogin').onclick = async () => {
+      if (!validateAuthReady()) return;
       try {
         await window.AuthFlow.login({
           email: document.getElementById('log_email').value,
@@ -64,6 +87,10 @@
         msg.textContent = `Login gagal: ${e.message}`;
       }
     };
+
+    if (!validateAuthReady()) {
+      console.warn('[Auth] Supabase/Auth belum siap. Ikuti instruksi setup di halaman.');
+    }
   </script>
 </body>
 </html>
