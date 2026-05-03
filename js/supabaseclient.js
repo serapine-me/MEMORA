@@ -2,7 +2,7 @@
   const SUPABASE_URL =
     window.__SUPABASE_URL__ ||
     localStorage.getItem('SUPABASE_URL') ||
-    localStorage.getItem('https://hhiwxpdzmuzlzprvlanb.supabase.co') ||
+    localStorage.getItem('SUPABASE_PROJECT_URL') ||
     '';
 
   const SUPABASE_ANON_KEY =
